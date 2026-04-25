@@ -60,7 +60,7 @@ interface BlackjackBranchSolution {
   actions: BlackjackActionResult[];
 }
 
-type ShoeCounts = number[];
+type ShoeCounts = number[] & { infinite?: boolean };
 
 const SHOE_VALUES = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11] as const;
 const SHOE_VALUE_INDEX: Record<(typeof SHOE_VALUES)[number], number> = {
@@ -92,26 +92,32 @@ function normalizeRules(partialRules?: Partial<BlackjackRules>): BlackjackRules 
 }
 
 function createStartingShoe(deckCount: number): ShoeCounts {
-  if (!Number.isInteger(deckCount) || deckCount < 1 || deckCount > 8) {
-    throw new Error(`Blackjack deck count must be an integer from 1 to 8, received ${deckCount}.`);
+  if (!Number.isInteger(deckCount) || deckCount < 0 || deckCount > 8) {
+    throw new Error(`Blackjack deck count must be an integer from 0 to 8, received ${deckCount}.`);
   }
 
-  return [
-    4 * deckCount,
-    4 * deckCount,
-    4 * deckCount,
-    4 * deckCount,
-    4 * deckCount,
-    4 * deckCount,
-    4 * deckCount,
-    4 * deckCount,
-    16 * deckCount,
-    4 * deckCount,
-  ];
+  const shoe = [
+    4 * (deckCount || 1),
+    4 * (deckCount || 1),
+    4 * (deckCount || 1),
+    4 * (deckCount || 1),
+    4 * (deckCount || 1),
+    4 * (deckCount || 1),
+    4 * (deckCount || 1),
+    4 * (deckCount || 1),
+    16 * (deckCount || 1),
+    4 * (deckCount || 1),
+  ] as ShoeCounts;
+
+  if (deckCount === 0) {
+    shoe.infinite = true;
+  }
+
+  return shoe;
 }
 
 function serializeShoe(shoe: ShoeCounts) {
-  return shoe.join(",");
+  return `${shoe.infinite ? "inf" : "finite"}:${shoe.join(",")}`;
 }
 
 function shoeCardsRemaining(shoe: ShoeCounts) {
@@ -125,11 +131,15 @@ function removeBlackjackValue(shoe: ShoeCounts, value: number) {
     throw new Error(`Unsupported blackjack value ${value}.`);
   }
 
+  if (shoe.infinite) {
+    return shoe;
+  }
+
   if ((shoe[index] ?? 0) < 1) {
     throw new Error(`The shoe no longer contains a blackjack value of ${value}.`);
   }
 
-  const nextShoe = [...shoe];
+  const nextShoe = [...shoe] as ShoeCounts;
   nextShoe[index] -= 1;
   return nextShoe;
 }
@@ -493,13 +503,15 @@ export function solveBlackjackHand(
   const dealerUpValue = blackjackCardValue(dealerUpCard);
   let shoe = createStartingShoe(deckCount);
 
-  for (const knownCard of [...playerCards, dealerUpCard, ...removedCards]) {
-    shoe = removeBlackjackValue(shoe, blackjackCardValue(knownCard));
+  if (!shoe.infinite) {
+    for (const knownCard of [...playerCards, dealerUpCard, ...removedCards]) {
+      shoe = removeBlackjackValue(shoe, blackjackCardValue(knownCard));
+    }
   }
 
-  const remainingCards = shoeCardsRemaining(shoe);
+  const remainingCards = shoe.infinite ? Number.POSITIVE_INFINITY : shoeCardsRemaining(shoe);
 
-  if (remainingCards < 1) {
+  if (!shoe.infinite && remainingCards < 1) {
     throw new Error("The blackjack shoe is exhausted after removing the known cards.");
   }
 
@@ -541,10 +553,14 @@ export function solveBlackjackHand(
       isNatural: true,
       dealerDistribution: aggregateDealerDistribution,
       notes: [
-        `${deckCount}-deck finite shoe with exact dealer hole-card conditioning.`,
-        removedCards.length > 0
-          ? `${removedCards.length} additional removed card(s) were taken out of the shoe before solving.`
-          : "Only the visible player cards and dealer upcard were removed from the shoe.",
+        deckCount === 0
+          ? "Infinite or unknown shoe with neutral draw weighting. Visible cards do not deplete the composition."
+          : `${deckCount}-deck finite shoe with exact dealer hole-card conditioning.`,
+        deckCount === 0
+          ? "Running-count or exposed-card adjustments are ignored in infinite-shoe mode."
+          : removedCards.length > 0
+            ? `${removedCards.length} additional removed card(s) were taken out of the shoe before solving.`
+            : "Only the visible player cards and dealer upcard were removed from the shoe.",
         "Natural blackjacks resolve before any player action tree is explored.",
       ],
       deckCount,
@@ -606,11 +622,17 @@ export function solveBlackjackHand(
     isNatural: false,
     dealerDistribution: aggregateDealerDistribution,
     notes: [
-      `${deckCount}-deck finite shoe with exact dealer hole-card weighting.`,
-      removedCards.length > 0
-        ? `${removedCards.length} additional removed card(s) were taken out of the shoe before solving.`
-        : "Only the visible player cards and dealer upcard were removed from the shoe.",
-      "Stand, hit, double, and surrender are composition-dependent for the remaining shoe.",
+      deckCount === 0
+        ? "Infinite or unknown shoe with neutral draw weighting. Visible cards do not deplete the composition."
+        : `${deckCount}-deck finite shoe with exact dealer hole-card weighting.`,
+      deckCount === 0
+        ? "Running-count or exposed-card adjustments are ignored in infinite-shoe mode."
+        : removedCards.length > 0
+          ? `${removedCards.length} additional removed card(s) were taken out of the shoe before solving.`
+          : "Only the visible player cards and dealer upcard were removed from the shoe.",
+      deckCount === 0
+        ? "Stand, hit, double, and surrender use infinite-shoe probabilities once the dealer upcard is known."
+        : "Stand, hit, double, and surrender are composition-dependent for the remaining shoe.",
       "Split EV removes both opening split cards exactly, then solves each branch independently for later draws.",
       rules.splitAcesOneCardOnly
         ? "Split aces are limited to one additional card."
