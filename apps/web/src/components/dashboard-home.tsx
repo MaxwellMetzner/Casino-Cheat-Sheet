@@ -9,14 +9,17 @@ const GAME_BY_SLUG = Object.fromEntries(
 const DASHBOARD_GROUPS = [
   {
     title: "Table Games",
-    slugs: ["roulette", "baccarat", "craps"],
+    summary: "Board-first layouts",
+    slugs: ["roulette", "baccarat", "craps", "keno"],
   },
   {
     title: "Casino Card Games",
+    summary: "Fast hand decisions",
     slugs: ["blackjack", "video-poker", "three-card-poker", "pai-gow-poker"],
   },
   {
     title: "Poker Variants",
+    summary: "Equity and removal",
     slugs: ["texas-holdem", "omaha", "seven-card-stud"],
   },
 ] as const;
@@ -24,30 +27,35 @@ const DASHBOARD_GROUPS = [
 export function DashboardHome() {
   return (
     <main className={styles.pageShell}>
-      <section className={`${styles.hero} ${styles.dashboardHero}`}>
-        <div className={styles.heroCopy}>
-          <p className={styles.eyebrow}>Casino Cheat Sheet</p>
-          <h1>Casino Cheat Sheet</h1>
-          <p className={styles.heroText}>
-            A static-friendly casino analysis site for exact table odds, practical EV, and browser-side poker equity.
-          </p>
-        </div>
+      <header className={styles.dashboardHeader}>
+        <div className={styles.dashboardHeaderGrid}>
+          <div className={styles.dashboardHeaderCopy}>
+            <p className={styles.eyebrow}>Casino Cheat Sheet</p>
+            <h1 className={styles.dashboardTitle}>Compact casino odds tools</h1>
+            <p className={styles.dashboardBlurb}>
+              Exact table math, card-hand decisions, and poker equity labs with the working boards first.
+            </p>
+          </div>
 
-        <div className={styles.heroPanel}>
-          <div className={styles.statCard}>
-            <span className={styles.statLabel}>Mission</span>
-            <strong>Fast, credible gambling math</strong>
-            <p>Choose a game and work directly with exact odds, EV, and browser-side simulations.</p>
+          <div className={styles.dashboardFactGrid}>
+            <div className={styles.compactFact}>
+              <span className={styles.statLabel}>Cards</span>
+              <strong>Compact pickers for blackjack, video poker, and poker equity inputs.</strong>
+            </div>
+            <div className={styles.compactFact}>
+              <span className={styles.statLabel}>Tables</span>
+              <strong>Board-first controls for roulette, craps, baccarat, and keno.</strong>
+            </div>
           </div>
         </div>
-      </section>
+      </header>
 
       <section className={styles.dashboardGrid}>
         {DASHBOARD_GROUPS.map((group) => (
           <article className={styles.moduleCard} key={group.title}>
             <div className={styles.dashboardGroupHeader}>
               <h2 className={styles.pageSectionTitle}>{group.title}</h2>
-              <span className={styles.dashboardGroupCount}>{group.slugs.length} pages</span>
+              <span className={styles.dashboardGroupMeta}>{group.summary}</span>
             </div>
             <div className={styles.dashboardLinkList}>
               {group.slugs.map((slug) => {
@@ -57,7 +65,7 @@ export function DashboardHome() {
                   <Link className={styles.dashboardLinkCard} href={`/${game.slug}`} key={game.slug}>
                     <div className={styles.dashboardLinkTopRow}>
                       <strong>{game.title}</strong>
-                      <span className={styles.dashboardLinkCue}>Open page</span>
+                      <span className={styles.dashboardLinkCue}>Open</span>
                     </div>
                     <div className={styles.outputCluster}>
                       {game.outputs.slice(0, 2).map((output) => (

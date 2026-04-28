@@ -92,8 +92,8 @@ export function simulateHoldemEquity({
     ? buildHoldemRangeCandidates(villainRange, knownCards)
     : [];
   const boardNeeded = 5 - boardCards.length;
-  const unknownOpponents = opponentCount - (villainHoleCards.length === 2 ? 1 : 0);
-  const totalUnknownCards = boardNeeded + (villainHoleCards.length === 0 && rangeCandidates.length === 0 ? 2 : 0) + (unknownOpponents * 2);
+  const additionalOpponents = Math.max(0, opponentCount - 1);
+  const totalUnknownCards = boardNeeded + (villainHoleCards.length === 0 && rangeCandidates.length === 0 ? 2 : 0) + (additionalOpponents * 2);
   const actualTrials = totalUnknownCards === 0 && rangeCandidates.length === 0 ? 1 : trials;
   let wins = 0;
   let losses = 0;
@@ -121,7 +121,7 @@ export function simulateHoldemEquity({
       }
     }
 
-    for (let index = 0; index < unknownOpponents; index += 1) {
+    for (let index = 0; index < additionalOpponents; index += 1) {
       const sampledHand = rangeCandidates.length > 0
         ? sampleRangeCombo(rangeCandidates, usedCodes)
         : sampleWithoutReplacement(deck.filter((card) => !usedCodes.has(card.code)), 2);

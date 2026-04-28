@@ -58,8 +58,8 @@ export function simulateSevenCardStudEquity({
   const deck = remainingDeck(knownCards);
   const heroNeeded = 7 - heroCards.length;
   const knownVillainNeeded = villainCards.length === 0 ? 0 : 7 - villainCards.length;
-  const unknownOpponents = opponentCount - (villainCards.length > 0 ? 1 : 0);
-  const totalUnknownCards = heroNeeded + knownVillainNeeded + (villainCards.length === 0 ? 7 : 0) + (unknownOpponents * 7);
+  const additionalOpponents = Math.max(0, opponentCount - 1);
+  const totalUnknownCards = heroNeeded + knownVillainNeeded + (villainCards.length === 0 ? 7 : 0) + (additionalOpponents * 7);
   const actualTrials = totalUnknownCards === 0 ? 1 : trials;
   let wins = 0;
   let losses = 0;
@@ -98,7 +98,7 @@ export function simulateSevenCardStudEquity({
       }
     }
 
-    for (let index = 0; index < unknownOpponents; index += 1) {
+    for (let index = 0; index < additionalOpponents; index += 1) {
       const sampledOpponent = sampleWithoutReplacement(deck.filter((card) => !usedCodes.has(card.code)), 7);
       opponentHands.push(sampledOpponent);
 

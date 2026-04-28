@@ -1,15 +1,15 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useId, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import styles from "./casino-dashboard.module.css";
 
 const CARD_RANKS = ["A", "K", "Q", "J", "T", "9", "8", "7", "6", "5", "4", "3", "2"] as const;
 const CARD_SUITS = [
-  { code: "s", symbol: "", label: "spades", red: false },
-  { code: "h", symbol: "", label: "hearts", red: true },
-  { code: "d", symbol: "", label: "diamonds", red: true },
-  { code: "c", symbol: "", label: "clubs", red: false },
+  { code: "s", symbol: "\u2660", label: "spades", red: false },
+  { code: "h", symbol: "\u2665", label: "hearts", red: true },
+  { code: "d", symbol: "\u2666", label: "diamonds", red: true },
+  { code: "c", symbol: "\u2663", label: "clubs", red: false },
 ] as const;
 const CARD_SUIT_SYMBOLS: Record<(typeof CARD_SUITS)[number]["code"], string> = {
   s: "\u2660",
@@ -32,6 +32,7 @@ const CARD_RANK_LABELS: Record<(typeof CARD_RANKS)[number], string> = {
   3: "Three",
   2: "Two",
 };
+const BLACKJACK_VALUE_OPTIONS = [11, 10, 9, 8, 7, 6, 5, 4, 3, 2] as const;
 const DIE_PIPS: Record<number, number[]> = {
   1: [4],
   2: [0, 8],
@@ -45,6 +46,7 @@ type CardRank = (typeof CARD_RANKS)[number];
 type CardSuit = (typeof CARD_SUITS)[number]["code"];
 type VisualCardToken = `${CardRank}${CardSuit}`;
 type CardPickerPresentation = "inline" | "dialog";
+type BlackjackValue = (typeof BLACKJACK_VALUE_OPTIONS)[number];
 
 function normalizeCardToken(rawToken: string): VisualCardToken | null {
   const match = rawToken.trim().match(/^(A|K|Q|J|T|[2-9])([shdc])$/i);
@@ -72,6 +74,10 @@ function cardLabel(token: VisualCardToken) {
   return `${CARD_RANK_LABELS[rank]} of ${suit.label}`;
 }
 
+export function blackjackValueLabel(value: number) {
+  return value === 11 ? "A" : `${value}`;
+}
+
 function formatRollDescriptor(dieOne: number, dieTwo: number) {
   const sum = dieOne + dieTwo;
 
@@ -91,16 +97,19 @@ function PlayingCard({
   empty,
   active,
   compact,
+  mini,
 }: {
   token?: VisualCardToken;
   empty?: boolean;
   active?: boolean;
   compact?: boolean;
+  mini?: boolean;
 }) {
   const suit = token ? cardSuitMeta(token) : null;
   const cardClass = [
     styles.playingCardButton,
     compact ? styles.playingCardCompact : "",
+    mini ? styles.playingCardMini : "",
     empty ? styles.playingCardEmpty : "",
     active ? styles.playingCardActive : "",
     suit?.red ? styles.playingCardRed : token ? styles.playingCardBlack : "",
@@ -115,6 +124,40 @@ function PlayingCard({
         </>
       ) : (
         <span className={styles.playingCardGhost}>Select</span>
+      )}
+    </span>
+  );
+}
+
+function BlackjackValueCard({
+  value,
+  empty,
+  active,
+  mini,
+}: {
+  value?: number;
+  empty?: boolean;
+  active?: boolean;
+  mini?: boolean;
+}) {
+  const cardClass = [
+    styles.playingCardButton,
+    styles.playingCardCompact,
+    mini ? styles.playingCardMini : "",
+    styles.playingCardBlack,
+    empty ? styles.playingCardEmpty : "",
+    active ? styles.playingCardActive : "",
+  ].filter(Boolean).join(" ");
+
+  return (
+    <span className={cardClass}>
+      {value === undefined ? (
+        <span className={styles.playingCardGhost}>Select</span>
+      ) : (
+        <>
+          <span className={styles.playingCardRank}>{blackjackValueLabel(value)}</span>
+          {!mini ? <span className={styles.playingCardGhost}>value</span> : null}
+        </>
       )}
     </span>
   );
@@ -213,8 +256,9 @@ export function CardPickerField({
   onChange,
   maxCards,
   unavailableCards = [],
-  presentation = "inline",
+  presentation = "dialog",
   compact = true,
+  autoCloseOnComplete = true,
 }: {
   label: string;
   hint?: string;
@@ -224,10 +268,12 @@ export function CardPickerField({
   unavailableCards?: string[];
   presentation?: CardPickerPresentation;
   compact?: boolean;
+  autoCloseOnComplete?: boolean;
 }) {
   const selectedCards = cardTokensFromInput(value).slice(0, maxCards);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [activeSlot, setActiveSlot] = useState(0);
+  const pickerTitleId = useId();
   const slotCount = Math.min(maxCards, Math.max(selectedCards.length + (selectedCards.length < maxCards ? 1 : 0), 1));
   const normalizedActiveSlot = Math.min(activeSlot, Math.max(slotCount - 1, 0));
   const activeCard = selectedCards[normalizedActiveSlot];
@@ -242,6 +288,21 @@ export function CardPickerField({
       blockedCards.add(card);
     }
   });
+
+  useEffect(() => {
+    if (!pickerOpen || presentation !== "dialog") {
+      return undefined;
+    }
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setPickerOpen(false);
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [pickerOpen, presentation]);
 
   function commit(nextCards: VisualCardToken[]) {
     onChange(nextCards.join(" "));
@@ -258,6 +319,10 @@ export function CardPickerField({
     nextCards[targetIndex] = token;
     commit(nextCards);
     setActiveSlot(targetIndex >= selectedCards.length ? Math.min(targetIndex + 1, maxCards - 1) : targetIndex);
+
+    if (presentation === "dialog" && autoCloseOnComplete && nextCards.length >= maxCards) {
+      setPickerOpen(false);
+    }
   }
 
   function handleRemoveActive() {
@@ -271,24 +336,30 @@ export function CardPickerField({
   }
 
   const deckPanel = (
-    <div className={presentation === "dialog" ? styles.pickerModalCard : styles.cardDeckPanel}>
-      <div className={styles.cardFieldHeader}>
-        <p className={styles.cardDeckSummary}>
-          Active slot: {activeCard ? cardLabel(activeCard) : `Card ${normalizedActiveSlot + 1}`}. Cards already used elsewhere on the page are disabled.
-        </p>
+    <div
+      className={presentation === "dialog" ? styles.pickerModalCard : styles.cardDeckPanel}
+      {...(presentation === "dialog" && { role: "dialog", "aria-modal": "true", "aria-labelledby": pickerTitleId })}
+    >
+      <div className={styles.compactPickerHeader}>
+        <div>
+          <strong id={pickerTitleId}>{label}</strong>
+          <p className={styles.cardDeckSummary}>
+            {activeCard ? `Editing ${cardLabel(activeCard)}` : `Choosing card ${normalizedActiveSlot + 1}`} - used cards are disabled
+          </p>
+        </div>
         {presentation === "dialog" ? (
           <button type="button" className={styles.pickerButton} onClick={() => setPickerOpen(false)}>
-            Close picker
+            Done
           </button>
         ) : null}
       </div>
-      <div className={styles.cardDeckBySuit}>
+      <div className={styles.compactDeck}>
         {CARD_SUITS.map((suit) => (
-          <div className={styles.cardSuitSection} key={`${label}-${suit.code}`}>
+          <div className={styles.compactDeckSuitRow} key={`${label}-${suit.code}`}>
             <span className={`${styles.cardSuitLabel} ${suit.red ? styles.playingCardRed : styles.playingCardBlack}`}>
-              {CARD_SUIT_SYMBOLS[suit.code]} {suit.label}
+              {suit.symbol} {suit.label}
             </span>
-            <div className={styles.cardSuitRow}>
+            <div className={styles.compactDeckRankGrid}>
               {CARD_RANKS.map((rank) => {
                 const token = `${rank}${suit.code}` as VisualCardToken;
                 const disabled = blockedCards.has(token);
@@ -302,7 +373,7 @@ export function CardPickerField({
                     disabled={disabled}
                     onClick={() => handleCardPick(token)}
                   >
-                    <PlayingCard token={token} compact={compact} />
+                    <PlayingCard token={token} compact={compact} mini active={token === activeCard} />
                   </button>
                 );
               })}
@@ -347,10 +418,10 @@ export function CardPickerField({
             {selectedCards.length} selected{maxCards < 52 ? `, up to ${maxCards}` : ""}
           </span>
           <button type="button" className={styles.pickerButton} onClick={() => setPickerOpen((current) => !current)}>
-            {pickerOpen ? (presentation === "dialog" ? "Close picker" : "Hide deck") : "Choose cards"}
+            {pickerOpen ? (presentation === "dialog" ? "Close" : "Hide") : "Pick"}
           </button>
           <button type="button" className={styles.pickerButton} onClick={handleRemoveActive} disabled={!activeCard}>
-            Remove active
+            Remove
           </button>
           <button type="button" className={styles.pickerButton} onClick={() => {
             onChange("");
@@ -376,6 +447,168 @@ export function CardPickerField({
   );
 }
 
+export function BlackjackValuePickerField({
+  label,
+  hint,
+  values,
+  onChange,
+  maxCards,
+  autoCloseOnComplete = true,
+}: {
+  label: string;
+  hint?: string;
+  values: number[];
+  onChange: (values: number[]) => void;
+  maxCards: number;
+  autoCloseOnComplete?: boolean;
+}) {
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [activeSlot, setActiveSlot] = useState(0);
+  const pickerTitleId = useId();
+  const selectedValues = values.slice(0, maxCards);
+  const slotCount = Math.min(maxCards, Math.max(selectedValues.length + (selectedValues.length < maxCards ? 1 : 0), 1));
+  const normalizedActiveSlot = Math.min(activeSlot, Math.max(slotCount - 1, 0));
+  const activeValue = selectedValues[normalizedActiveSlot];
+
+  useEffect(() => {
+    if (!pickerOpen) {
+      return undefined;
+    }
+
+    function handleKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape") {
+        setPickerOpen(false);
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [pickerOpen]);
+
+  function commit(nextValues: number[]) {
+    onChange(nextValues.slice(0, maxCards));
+  }
+
+  function handlePick(value: BlackjackValue) {
+    const nextValues = [...selectedValues];
+    const targetIndex = normalizedActiveSlot < nextValues.length ? normalizedActiveSlot : nextValues.length;
+
+    if (targetIndex >= maxCards) {
+      return;
+    }
+
+    nextValues[targetIndex] = value;
+    commit(nextValues);
+    setActiveSlot(targetIndex >= selectedValues.length ? Math.min(targetIndex + 1, maxCards - 1) : targetIndex);
+
+    if (autoCloseOnComplete && nextValues.length >= maxCards) {
+      setPickerOpen(false);
+    }
+  }
+
+  function handleRemoveActive() {
+    if (activeValue === undefined) {
+      return;
+    }
+
+    const nextValues = selectedValues.filter((_, index) => index !== normalizedActiveSlot);
+    commit(nextValues);
+    setActiveSlot(Math.max(0, Math.min(normalizedActiveSlot, nextValues.length)));
+  }
+
+  const pickerPanel = (
+    <div className={styles.pickerModalCard} role="dialog" aria-modal="true" aria-labelledby={pickerTitleId}>
+      <div className={styles.compactPickerHeader}>
+        <div>
+          <strong id={pickerTitleId}>{label}</strong>
+          <p className={styles.cardDeckSummary}>
+            {activeValue === undefined ? `Choosing value ${normalizedActiveSlot + 1}` : `Editing ${blackjackValueLabel(activeValue)}`} - suits ignored
+          </p>
+        </div>
+        <button type="button" className={styles.pickerButton} onClick={() => setPickerOpen(false)}>
+          Done
+        </button>
+      </div>
+      <div className={styles.blackjackValueGrid}>
+        {BLACKJACK_VALUE_OPTIONS.map((value) => (
+          <button
+            type="button"
+            className={styles.cardDeckButton}
+            key={`${label}-${value}`}
+            aria-label={`Set ${label} to ${blackjackValueLabel(value)}`}
+            onClick={() => handlePick(value)}
+          >
+            <BlackjackValueCard value={value} active={value === activeValue} mini />
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+
+  return (
+    <div className={styles.cardField}>
+      <div className={styles.fieldLabelHeader}>
+        <span>{label}</span>
+        {hint ? <HelpHint text={hint} label={`${label} explanation`} /> : null}
+      </div>
+
+      <div className={styles.cardFieldHeader}>
+        <div className={styles.cardSlotRow}>
+          {Array.from({ length: slotCount }, (_, index) => {
+            const value = selectedValues[index];
+
+            return (
+              <button
+                type="button"
+                className={styles.cardSlotButton}
+                key={`${label}-${index}`}
+                aria-label={value === undefined ? `Select ${label} ${index + 1}` : `Edit ${label} ${index + 1}`}
+                onClick={() => {
+                  setActiveSlot(index);
+                  setPickerOpen(true);
+                }}
+              >
+                <BlackjackValueCard value={value} empty={value === undefined} active={index === normalizedActiveSlot} />
+              </button>
+            );
+          })}
+        </div>
+
+        <div className={styles.cardFieldActions}>
+          <span className={styles.cardStatusText}>
+            {selectedValues.length} selected{maxCards > 1 ? `, up to ${maxCards}` : ""}
+          </span>
+          <button type="button" className={styles.pickerButton} onClick={() => setPickerOpen(true)}>
+            Pick
+          </button>
+          <button type="button" className={styles.pickerButton} onClick={handleRemoveActive} disabled={activeValue === undefined}>
+            Remove
+          </button>
+          <button
+            type="button"
+            className={styles.pickerButton}
+            onClick={() => {
+              onChange([]);
+              setActiveSlot(0);
+            }}
+            disabled={selectedValues.length === 0}
+          >
+            Clear
+          </button>
+        </div>
+      </div>
+
+      {pickerOpen ? (
+        <div className={styles.pickerModalBackdrop} onClick={() => setPickerOpen(false)}>
+          <div onClick={(event) => event.stopPropagation()}>
+            {pickerPanel}
+          </div>
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 export function DiceRollField({
   label,
   hint,
@@ -391,7 +624,7 @@ export function DiceRollField({
   dieTwo: number;
   onDieOneChange: (value: number) => void;
   onDieTwoChange: (value: number) => void;
-  onResolve: () => void;
+  onResolve?: () => void;
 }) {
   const diceOptions = Array.from({ length: 6 }, (_, index) => index + 1);
 
@@ -435,9 +668,11 @@ export function DiceRollField({
           <strong>{formatRollDescriptor(dieOne, dieTwo)}</strong>
           <span>{dieOne} + {dieTwo} = {dieOne + dieTwo}</span>
         </div>
-        <button type="button" className={styles.actionButton} onClick={onResolve}>
-          Resolve selected roll
-        </button>
+        {onResolve ? (
+          <button type="button" className={styles.actionButton} onClick={onResolve}>
+            Resolve selected roll
+          </button>
+        ) : null}
       </div>
     </div>
   );

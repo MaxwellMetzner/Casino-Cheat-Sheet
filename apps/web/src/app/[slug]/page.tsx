@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { casinoCatalog } from "casino-engine";
 import { BlackjackPage, PaiGowPokerPage, ThreeCardPokerPage, VideoPokerPage } from "@/components/pages/card-pages";
-import { BaccaratPage, CrapsPage, RoulettePage } from "@/components/pages/exact-pages";
-import { HoldemPage, OmahaPage, StudPage, ToyCfrPage } from "@/components/pages/poker-pages";
+import { BaccaratPage, CrapsPage, KenoPage, RoulettePage } from "@/components/pages/exact-pages";
+import { HoldemPage, OmahaPage, StudPage } from "@/components/pages/poker-pages";
 
 const GAME_BY_SLUG = Object.fromEntries(
   casinoCatalog.map((game) => [game.slug, game]),
@@ -13,6 +13,7 @@ const GAME_PAGE_BY_SLUG = {
   roulette: RoulettePage,
   baccarat: BaccaratPage,
   craps: CrapsPage,
+  keno: KenoPage,
   blackjack: BlackjackPage,
   "video-poker": VideoPokerPage,
   "three-card-poker": ThreeCardPokerPage,
@@ -20,7 +21,6 @@ const GAME_PAGE_BY_SLUG = {
   "texas-holdem": HoldemPage,
   omaha: OmahaPage,
   "seven-card-stud": StudPage,
-  "toy-gto-lab": ToyCfrPage,
 } as const;
 
 export const dynamicParams = false;

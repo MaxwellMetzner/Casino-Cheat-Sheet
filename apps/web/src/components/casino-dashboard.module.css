@@ -1,7 +1,114 @@
 .pageShell {
   display: flex;
   flex-direction: column;
-  gap: 2.5rem;
+  gap: 1rem;
+}
+
+.gameHeader,
+.dashboardHeader {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: 0.75rem;
+  background: rgba(255, 252, 246, 0.94);
+  box-shadow: 0 0.5rem 1.2rem rgba(16, 37, 27, 0.08);
+}
+
+.gameHeaderTop,
+.dashboardHeaderTop {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.gameHeaderGrid,
+.dashboardHeaderGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(22rem, 0.9fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.gameHeaderCopy,
+.dashboardHeaderCopy,
+.compactFact,
+.compactPanel,
+.sidebarStack {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.gameTitle,
+.dashboardTitle {
+  color: var(--text-strong);
+  font-family: var(--font-display), serif;
+  font-size: clamp(2rem, 4.8vw, 3.8rem);
+  line-height: 0.95;
+}
+
+.gameBlurb,
+.dashboardBlurb {
+  color: var(--text-muted);
+  max-width: 68ch;
+  line-height: 1.45;
+}
+
+.gameFactGrid,
+.dashboardFactGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.65rem;
+}
+
+.compactFact,
+.compactPanel {
+  min-width: 0;
+  padding: 0.7rem;
+  border: 1px solid rgba(10, 35, 27, 0.1);
+  border-radius: 0.55rem;
+  background: rgba(255, 255, 255, 0.66);
+}
+
+.compactFact strong {
+  color: var(--text-strong);
+  font-size: 0.94rem;
+  line-height: 1.35;
+}
+
+.compactFact .statLabel {
+  color: var(--accent-deep);
+}
+
+.compactPanelTitle {
+  color: var(--text-subtle);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.boardFirstGrid,
+.analyzerGrid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.45fr) minmax(18rem, 0.55fr);
+  gap: 0.85rem;
+  align-items: start;
+}
+
+.boardPrimary {
+  min-width: 0;
+}
+
+.sidebarStack {
+  min-width: 0;
+}
+
+.quickStats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem;
 }
 
 .hero {
@@ -183,9 +290,9 @@
 .trackCard,
 .moduleCard {
   border: 1px solid var(--border);
-  border-radius: 1.5rem;
-  background: linear-gradient(180deg, rgba(252, 248, 238, 0.98), rgba(247, 240, 224, 0.96));
-  box-shadow: 0 1.25rem 2.5rem rgba(16, 37, 27, 0.12);
+  border-radius: 0.75rem;
+  background: rgba(255, 252, 246, 0.94);
+  box-shadow: 0 0.5rem 1.2rem rgba(16, 37, 27, 0.08);
 }
 
 .trackCard {
@@ -333,20 +440,22 @@
   width: fit-content;
   align-items: center;
   gap: 0.45rem;
-  padding: 0.45rem 0.8rem;
-  border: 1px solid rgba(255, 248, 231, 0.18);
-  border-radius: 999px;
-  color: var(--text-on-dark);
-  background: rgba(255, 255, 255, 0.05);
+  min-height: 2rem;
+  padding: 0.25rem 0.55rem;
+  border: 1px solid rgba(10, 35, 27, 0.12);
+  border-radius: 0.45rem;
+  color: var(--text-strong);
+  background: rgba(255, 255, 255, 0.72);
   font-weight: 700;
+  font-size: 0.86rem;
 }
 
 .pageSectionHeader {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(16rem, 0.92fr);
-  gap: 0.7rem 1.5rem;
+  grid-template-columns: minmax(0, 1fr) minmax(16rem, 0.82fr);
+  gap: 0.55rem 1rem;
   align-items: start;
-  padding: 1.2rem 1.2rem 0;
+  padding: 0.85rem 0.85rem 0;
 }
 
 .pageSectionHeader > div {
@@ -356,15 +465,15 @@
 .pageSectionTitle {
   font-family: var(--font-display), serif;
   color: var(--text-strong);
-  font-size: clamp(1.8rem, 3.4vw, 2.6rem);
+  font-size: clamp(1.35rem, 2.5vw, 2rem);
   line-height: 1;
-  letter-spacing: -0.04em;
 }
 
 .pageSectionText {
   color: var(--text-muted);
-  max-width: 36ch;
-  line-height: 1.55;
+  max-width: 44ch;
+  font-size: 0.92rem;
+  line-height: 1.42;
 }
 
 .dashboardGroupHeader {
@@ -375,7 +484,8 @@
   padding: 1.2rem 1.2rem 0.25rem;
 }
 
-.dashboardGroupCount {
+.dashboardGroupCount,
+.dashboardGroupMeta {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -387,6 +497,12 @@
   color: var(--text-subtle);
   font-size: 0.84rem;
   font-weight: 700;
+}
+
+.dashboardGroupMeta {
+  justify-content: flex-start;
+  border-radius: 0.45rem;
+  white-space: nowrap;
 }
 
 .dashboardGrid {
@@ -637,18 +753,102 @@
 }
 
 .rouletteBoardCanvasShell {
+  display: flex;
+  justify-content: center;
   overflow-x: auto;
   padding-bottom: 0.35rem;
 }
 
 .rouletteBoardCanvas {
   display: block;
-  width: min(100%, 64rem);
-  min-width: 44rem;
+  width: min(100%, 58rem);
+  min-width: 40rem;
   height: auto;
   margin: 0 auto;
   -webkit-user-select: none;
   user-select: none;
+}
+
+.rouletteBoardPanel {
+  display: grid;
+  gap: 0.95rem;
+  padding: 1rem;
+  border: 1px solid rgba(17, 42, 31, 0.14);
+  border-radius: 1.6rem;
+  background:
+    linear-gradient(180deg, rgba(11, 43, 33, 0.08), rgba(11, 43, 33, 0.03)),
+    rgba(255, 252, 246, 0.92);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.65);
+}
+
+.rouletteBoardHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.rouletteBoardHeaderCopy {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.rouletteBoardHeaderEyebrow {
+  color: var(--accent-deep);
+  font-size: 0.77rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.rouletteBoardHeaderTitle {
+  margin: 0;
+  color: var(--text-strong);
+  font-size: clamp(1.25rem, 2vw, 1.6rem);
+}
+
+.rouletteBoardHeaderText {
+  margin: 0;
+  color: var(--text-subtle);
+  max-width: 36rem;
+}
+
+.rouletteBoardModeSwitch {
+  flex-shrink: 0;
+  align-self: center;
+  padding: 0.32rem;
+  background: rgba(10, 35, 27, 0.86);
+}
+
+.rouletteBoardModeButton {
+  display: grid;
+  gap: 0.08rem;
+  min-width: 8.9rem;
+  padding: 0.6rem 0.95rem;
+  color: rgba(247, 238, 216, 0.82);
+  text-align: left;
+}
+
+.rouletteBoardModeButtonActive {
+  background: rgba(247, 238, 216, 0.14);
+  color: #fff8e5;
+  box-shadow: inset 0 0 0 1px rgba(243, 223, 174, 0.34);
+}
+
+.rouletteBoardModeButtonLabel,
+.rouletteBoardModeButtonDetail {
+  display: block;
+}
+
+.rouletteBoardModeButtonLabel {
+  font-size: 0.95rem;
+  font-weight: 800;
+}
+
+.rouletteBoardModeButtonDetail {
+  font-size: 0.74rem;
+  letter-spacing: 0.03em;
+  opacity: 0.82;
 }
 
 .rouletteBoardHotspot {
@@ -731,13 +931,13 @@
 }
 
 .tabPanel {
-  padding: 1rem 1.2rem 1.2rem;
+  padding: 0.85rem;
 }
 
 .contentStack {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.75rem;
 }
 
 .fieldLabelHeader,
@@ -853,13 +1053,13 @@
 .playingCardButton {
   display: grid;
   place-items: center;
-  width: 4.1rem;
-  min-height: 5.5rem;
-  padding: 0.45rem;
+  width: 3.25rem;
+  min-height: 4.35rem;
+  padding: 0.35rem;
   border: 1px solid rgba(10, 35, 27, 0.12);
-  border-radius: 1rem;
+  border-radius: 0.55rem;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.98), rgba(244, 238, 226, 0.98));
-  box-shadow: 0 0.7rem 1.4rem rgba(16, 37, 27, 0.08);
+  box-shadow: 0 0.45rem 0.9rem rgba(16, 37, 27, 0.08);
 }
 
 .playingCardEmpty {
@@ -894,12 +1094,32 @@
   font-size: 0.98rem;
 }
 
+.playingCardMini {
+  width: 2.35rem;
+  min-height: 3rem;
+  padding: 0.25rem;
+  border-radius: 0.42rem;
+  box-shadow: none;
+}
+
+.playingCardMini .playingCardRank {
+  font-size: 0.86rem;
+}
+
 .playingCardSuit {
   font-size: 1.25rem;
 }
 
 .playingCardCompact .playingCardSuit {
   font-size: 1rem;
+}
+
+.playingCardMini .playingCardSuit {
+  font-size: 0.86rem;
+}
+
+.playingCardMini .playingCardGhost {
+  font-size: 0.68rem;
 }
 
 .playingCardGhost {
@@ -910,17 +1130,51 @@
 
 .cardDeckPanel {
   display: grid;
-  gap: 0.8rem;
-  padding: 1rem;
+  gap: 0.65rem;
+  padding: 0.75rem;
   border: 1px solid rgba(10, 35, 27, 0.1);
-  border-radius: 1.15rem;
+  border-radius: 0.65rem;
   background: rgba(255, 255, 255, 0.55);
+}
+
+.compactPickerHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.8rem;
+}
+
+.compactPickerHeader strong {
+  color: var(--text-strong);
+}
+
+.compactDeck {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.compactDeckSuitRow {
+  display: grid;
+  grid-template-columns: minmax(4.6rem, auto) minmax(0, 1fr);
+  gap: 0.45rem;
+  align-items: center;
+}
+
+.compactDeckRankGrid,
+.blackjackValueGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(2.35rem, 1fr));
+  gap: 0.3rem;
+}
+
+.blackjackValueGrid {
+  grid-template-columns: repeat(auto-fit, minmax(2.6rem, 1fr));
 }
 
 .cardDeckGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(4rem, 1fr));
-  gap: 0.65rem;
+  grid-template-columns: repeat(auto-fit, minmax(3.25rem, 1fr));
+  gap: 0.45rem;
 }
 
 .cardDeckBySuit {
@@ -942,8 +1196,8 @@
 
 .cardSuitRow {
   display: grid;
-  grid-template-columns: repeat(13, minmax(3rem, 1fr));
-  gap: 0.45rem;
+  grid-template-columns: repeat(13, minmax(2.65rem, 1fr));
+  gap: 0.35rem;
   overflow-x: auto;
   padding-bottom: 0.15rem;
 }
@@ -985,7 +1239,7 @@
 .diceOptions {
   display: grid;
   grid-template-columns: repeat(6, minmax(0, 1fr));
-  gap: 0.55rem;
+  gap: 0.35rem;
 }
 
 .dieButton,
@@ -993,10 +1247,10 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 4rem;
-  padding: 0.5rem;
+  min-height: 3rem;
+  padding: 0.35rem;
   border: 1px solid rgba(10, 35, 27, 0.12);
-  border-radius: 1rem;
+  border-radius: 0.45rem;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(244, 238, 226, 0.98));
   box-shadow: 0 0.7rem 1.4rem rgba(16, 37, 27, 0.08);
 }
@@ -1014,14 +1268,14 @@
 
 .dieFace {
   display: grid;
-  grid-template-columns: repeat(3, 0.45rem);
-  grid-template-rows: repeat(3, 0.45rem);
-  gap: 0.24rem;
+  grid-template-columns: repeat(3, 0.36rem);
+  grid-template-rows: repeat(3, 0.36rem);
+  gap: 0.2rem;
 }
 
 .diePip {
-  width: 0.45rem;
-  height: 0.45rem;
+  width: 0.36rem;
+  height: 0.36rem;
   border-radius: 999px;
   opacity: 0;
 }
@@ -1101,27 +1355,27 @@
 
 .fieldLabel {
   display: grid;
-  gap: 0.45rem;
+  gap: 0.35rem;
   color: var(--text-subtle);
-  font-size: 0.9rem;
+  font-size: 0.86rem;
   font-weight: 600;
 }
 
 .fieldLabel select {
-  min-height: 2.8rem;
-  padding: 0 0.85rem;
+  min-height: 2.35rem;
+  padding: 0 0.65rem;
   border: 1px solid var(--border);
-  border-radius: 0.95rem;
+  border-radius: 0.55rem;
   background: rgba(255, 255, 255, 0.72);
   color: var(--text-strong);
 }
 
 .fieldLabel input,
 .fieldLabel textarea {
-  min-height: 2.8rem;
-  padding: 0.65rem 0.85rem;
+  min-height: 2.35rem;
+  padding: 0.5rem 0.65rem;
   border: 1px solid var(--border);
-  border-radius: 0.95rem;
+  border-radius: 0.55rem;
   background: rgba(255, 255, 255, 0.72);
   color: var(--text-strong);
 }
@@ -1146,13 +1400,14 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: 2.9rem;
-  padding: 0 1rem;
+  min-height: 2.35rem;
+  padding: 0 0.8rem;
   border: 1px solid rgba(4, 28, 22, 0.88);
-  border-radius: 999px;
+  border-radius: 0.5rem;
   background: rgba(4, 28, 22, 0.96);
   color: var(--text-on-dark);
   font-weight: 700;
+  font-size: 0.88rem;
 }
 
 .actionButton:disabled {
@@ -1161,28 +1416,29 @@
 }
 
 .metricGrid {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
 }
 
 .metricCard {
   display: grid;
-  gap: 0.35rem;
-  padding: 1rem;
+  gap: 0.25rem;
+  min-width: 0;
+  padding: 0.65rem;
   border: 1px solid rgba(10, 35, 27, 0.08);
-  border-radius: 1.1rem;
+  border-radius: 0.55rem;
   background: rgba(255, 255, 255, 0.62);
 }
 
 .metricCard span {
   color: var(--text-subtle);
-  font-size: 0.82rem;
+  font-size: 0.72rem;
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
 
 .metricCard strong {
   color: var(--text-strong);
-  font-size: 1.25rem;
+  font-size: 1.05rem;
   line-height: 1.15;
 }
 
@@ -1199,7 +1455,7 @@
 .tableWrap {
   overflow-x: auto;
   border: 1px solid rgba(10, 35, 27, 0.08);
-  border-radius: 1rem;
+  border-radius: 0.55rem;
 }
 
 .dataTable,
@@ -1213,7 +1469,7 @@
 .dataTable td,
 .matrixTable th,
 .matrixTable td {
-  padding: 0.8rem 0.85rem;
+  padding: 0.5rem 0.6rem;
   border-bottom: 1px solid rgba(10, 35, 27, 0.08);
   text-align: left;
   vertical-align: top;
@@ -1258,19 +1514,21 @@
 }
 
 .toggleGrid {
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(8.5rem, 1fr));
 }
 
 .toggleLabel {
   display: inline-flex;
   align-items: center;
-  gap: 0.55rem;
-  padding: 0.7rem 0.8rem;
+  gap: 0.45rem;
+  min-height: 2.35rem;
+  padding: 0.45rem 0.55rem;
   border: 1px solid rgba(10, 35, 27, 0.12);
-  border-radius: 0.95rem;
+  border-radius: 0.5rem;
   background: rgba(255, 255, 255, 0.62);
   color: var(--text-strong);
   cursor: pointer;
+  font-size: 0.84rem;
 }
 
 .toggleLabelActive {
@@ -1313,10 +1571,10 @@
 
 .resultPanel {
   display: grid;
-  gap: 0.9rem;
-  padding: 1rem;
+  gap: 0.65rem;
+  padding: 0.75rem;
   border: 1px solid rgba(10, 35, 27, 0.12);
-  border-radius: 1.1rem;
+  border-radius: 0.55rem;
   background: rgba(255, 255, 255, 0.68);
 }
 
@@ -1377,6 +1635,225 @@
   color: #6f1f17;
 }
 
+.siteFooter {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  width: min(88rem, calc(100% - 2rem));
+  margin: -2.5rem auto 2rem;
+  padding: 0.75rem 1rem;
+  border-top: 1px solid rgba(10, 35, 27, 0.12);
+  color: var(--text-muted);
+  font-size: 0.86rem;
+}
+
+.siteFooter a {
+  color: var(--accent-deep);
+  font-weight: 800;
+}
+
+.feltBoard,
+.numberBoard,
+.crapsBoard,
+.baccaratBoard {
+  border: 1px solid rgba(243, 223, 174, 0.34);
+  border-radius: 0.65rem;
+  background:
+    linear-gradient(180deg, rgba(18, 84, 63, 0.96), rgba(8, 44, 34, 0.98));
+  color: var(--text-on-dark);
+  box-shadow: inset 0 0 0 1px rgba(255, 247, 226, 0.08);
+}
+
+.feltBoard {
+  display: grid;
+  gap: 0.8rem;
+  padding: 0.85rem;
+}
+
+.feltLane {
+  display: grid;
+  gap: 0.45rem;
+  padding: 0.65rem;
+  border: 1px solid rgba(255, 248, 231, 0.13);
+  border-radius: 0.55rem;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.feltLaneHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.7rem;
+  color: rgba(255, 248, 231, 0.74);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.feltLane .cardStatusText,
+.feltLane .cardDeckSummary,
+.feltLane .fieldLabelHeader,
+.feltBoard .cardStatusText,
+.feltBoard .cardDeckSummary,
+.feltBoard .fieldLabelHeader,
+.feltBoard .fieldLabel {
+  color: rgba(255, 248, 231, 0.76);
+}
+
+.feltBoard .helperText {
+  color: var(--text-strong);
+}
+
+.baccaratBoard {
+  padding: 0.7rem;
+}
+
+.baccaratBoard .matrixTable {
+  min-width: 44rem;
+}
+
+.crapsBoard {
+  display: grid;
+  gap: 0.55rem;
+  padding: 0.75rem;
+}
+
+.crapsTableLayout {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.crapsPointBoxes,
+.crapsWorkingRail,
+.crapsOddsRail,
+.crapsLineRail {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.crapsPointBoxes {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+.crapsCenterTable {
+  display: grid;
+  grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr) minmax(0, 0.75fr);
+  gap: 0.4rem;
+  min-height: 8.5rem;
+}
+
+.crapsWorkingRail {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+.crapsOddsRail,
+.crapsLineRail {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.crapsLineRail {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  padding: 0.35rem;
+  border: 1px solid rgba(255, 248, 231, 0.16);
+  border-radius: 0.55rem;
+}
+
+.crapsNumberRail,
+.crapsBetGrid {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.crapsNumberRail {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+.crapsBetGrid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.boardButton {
+  display: grid;
+  gap: 0.2rem;
+  align-content: center;
+  min-height: 3.7rem;
+  padding: 0.45rem;
+  border: 1px solid rgba(255, 248, 231, 0.18);
+  border-radius: 0.5rem;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text-on-dark);
+  text-align: center;
+}
+
+.crapsCenterTable .boardButton {
+  min-height: 7.6rem;
+}
+
+.crapsPointBox,
+.crapsComeBox,
+.crapsFieldBox,
+.crapsHardwayBox {
+  box-shadow: inset 0 0 0 1px rgba(255, 247, 226, 0.04);
+}
+
+.crapsComeBox {
+  text-transform: uppercase;
+}
+
+.crapsFieldBox {
+  background: rgba(210, 168, 98, 0.12);
+}
+
+.crapsHardwayBox {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.crapsLineButton {
+  min-height: 4.4rem;
+}
+
+.boardButton strong {
+  font-size: 1.1rem;
+}
+
+.boardButton span {
+  color: rgba(255, 248, 231, 0.68);
+  font-size: 0.72rem;
+}
+
+.boardButtonActive {
+  border-color: rgba(245, 220, 175, 0.86);
+  background: rgba(210, 168, 98, 0.28);
+  box-shadow: inset 0 0 0 1px rgba(245, 220, 175, 0.42);
+}
+
+.kenoBoard {
+  display: grid;
+  grid-template-columns: repeat(10, minmax(2.25rem, 1fr));
+  gap: 0.35rem;
+  padding: 0.75rem;
+}
+
+.kenoNumber {
+  min-height: 2.45rem;
+  border: 1px solid rgba(255, 248, 231, 0.18);
+  border-radius: 0.45rem;
+  background: rgba(255, 255, 255, 0.07);
+  color: var(--text-on-dark);
+  font-weight: 800;
+}
+
+.kenoNumberActive {
+  border-color: rgba(245, 220, 175, 0.9);
+  background: rgba(210, 168, 98, 0.34);
+}
+
+.compactTable {
+  max-height: 22rem;
+  overflow: auto;
+}
+
 @media (hover: hover) and (pointer: fine) {
   .primaryLink:hover,
   .secondaryLink:hover,
@@ -1398,6 +1875,10 @@
 
 @media (max-width: 1200px) {
   .hero,
+  .gameHeaderGrid,
+  .dashboardHeaderGrid,
+  .boardFirstGrid,
+  .analyzerGrid,
   .sectionHeader,
   .pageSectionHeader,
   .dashboardGrid,
@@ -1416,6 +1897,13 @@
 
 @media (max-width: 820px) {
   .hero,
+  .gameHeaderGrid,
+  .dashboardHeaderGrid,
+  .gameFactGrid,
+  .dashboardFactGrid,
+  .boardFirstGrid,
+  .analyzerGrid,
+  .quickStats,
   .sectionHeader,
   .pageSectionHeader,
   .trackSection,
@@ -1436,8 +1924,22 @@
     grid-template-columns: minmax(4rem, 4rem) minmax(22rem, 1fr);
   }
 
+  .rouletteBoardHeader {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .rouletteBoardModeSwitch {
+    width: 100%;
+  }
+
+  .rouletteBoardModeButton {
+    min-width: 0;
+    text-align: center;
+  }
+
   .rouletteBoardCanvas {
-    min-width: 38rem;
+    min-width: 36rem;
   }
 
   .hero {
@@ -1467,6 +1969,7 @@
   .dashboardGroupHeader,
   .dashboardLinkTopRow,
   .cardFieldHeader,
+  .compactPickerHeader,
   .selectedDiceSummary {
     flex-direction: column;
     align-items: flex-start;
@@ -1478,6 +1981,30 @@
 
   .cardSuitRow {
     grid-template-columns: repeat(13, minmax(2.6rem, 1fr));
+  }
+
+  .compactDeckSuitRow {
+    grid-template-columns: 1fr;
+  }
+
+  .crapsNumberRail,
+  .crapsBetGrid,
+  .crapsPointBoxes,
+  .crapsCenterTable,
+  .crapsWorkingRail,
+  .crapsOddsRail,
+  .crapsLineRail {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .kenoBoard {
+    grid-template-columns: repeat(5, minmax(2.2rem, 1fr));
+  }
+
+  .siteFooter {
+    align-items: flex-start;
+    flex-direction: column;
+    margin-top: -1.5rem;
   }
 }
 

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Fraunces, IBM_Plex_Mono, Space_Grotesk } from "next/font/google";
+import { SiteFooter } from "@/components/site-footer";
 import "./globals.css";
 
 const uiSans = Space_Grotesk({
@@ -34,7 +35,10 @@ export default function RootLayout({
       lang="en"
       className={`${uiSans.variable} ${displaySerif.variable} ${uiMono.variable}`}
     >
-      <body>{children}</body>
+      <body>
+        {children}
+        <SiteFooter />
+      </body>
     </html>
   );
 }

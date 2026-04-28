@@ -22,7 +22,7 @@ import {
   runAnalysisTask,
   useComputationState,
 } from "../casino-page-helpers";
-import { CardPickerField, FieldLabel, HelpHint, ToggleField } from "../input-primitives";
+import { BlackjackValuePickerField, CardPickerField, FieldLabel, ToggleField } from "../input-primitives";
 import styles from "../casino-dashboard.module.css";
 
 const GAME_BY_SLUG = Object.fromEntries(
@@ -35,7 +35,6 @@ const CARD_SUIT_SYMBOLS = {
   d: "\u2666",
   c: "\u2663",
 } as const;
-const BLACKJACK_VALUE_OPTIONS = [11, 10, 9, 8, 7, 6, 5, 4, 3, 2] as const;
 const BLACKJACK_HIGH_COUNT_SEQUENCE = [10, 10, 10, 10, 11] as const;
 const BLACKJACK_LOW_COUNT_SEQUENCE = [2, 3, 4, 5, 6] as const;
 const BLACKJACK_VALUE_SUITS = ["s", "h", "d", "c"] as const;
@@ -56,10 +55,6 @@ function useWorkerCleanup() {
   useEffect(() => () => {
     disposeCasinoWorker();
   }, []);
-}
-
-function blackjackValueLabel(value: number) {
-  return value === 11 ? "A" : `${value}`;
 }
 
 function createBlackjackCard(value: number, occurrence: number): Card {
@@ -89,37 +84,6 @@ function approximateRemovedCardsFromRunningCount(runningCount: number, deckCount
     seenValues.set(value, occurrence + 1);
     return createBlackjackCard(value, occurrence);
   });
-}
-
-function BlackjackValueCard({
-  value,
-  empty,
-  active,
-}: {
-  value?: number;
-  empty?: boolean;
-  active?: boolean;
-}) {
-  const cardClass = [
-    styles.playingCardButton,
-    styles.playingCardCompact,
-    styles.playingCardBlack,
-    empty ? styles.playingCardEmpty : "",
-    active ? styles.playingCardActive : "",
-  ].filter(Boolean).join(" ");
-
-  return (
-    <span className={cardClass}>
-      {value === undefined ? (
-        <span className={styles.playingCardGhost}>Select</span>
-      ) : (
-        <>
-          <span className={styles.playingCardRank}>{blackjackValueLabel(value)}</span>
-          <span className={styles.playingCardGhost}>value</span>
-        </>
-      )}
-    </span>
-  );
 }
 
 function ExactPlayingCard({ card }: { card: Card }) {
@@ -153,148 +117,6 @@ function ExactCardStrip({ cards, emptyLabel = "None" }: { cards: Card[]; emptyLa
   );
 }
 
-function BlackjackValuePickerField({
-  label,
-  hint,
-  values,
-  onChange,
-  maxCards,
-}: {
-  label: string;
-  hint?: string;
-  values: number[];
-  onChange: (values: number[]) => void;
-  maxCards: number;
-}) {
-  const [pickerOpen, setPickerOpen] = useState(false);
-  const [activeSlot, setActiveSlot] = useState(0);
-  const selectedValues = values.slice(0, maxCards);
-  const slotCount = Math.min(maxCards, Math.max(selectedValues.length + (selectedValues.length < maxCards ? 1 : 0), 1));
-  const normalizedActiveSlot = Math.min(activeSlot, Math.max(slotCount - 1, 0));
-  const activeValue = selectedValues[normalizedActiveSlot];
-
-  function commit(nextValues: number[]) {
-    onChange(nextValues.slice(0, maxCards));
-  }
-
-  function handlePick(value: number) {
-    const nextValues = [...selectedValues];
-    const targetIndex = normalizedActiveSlot < nextValues.length ? normalizedActiveSlot : nextValues.length;
-
-    if (targetIndex >= maxCards) {
-      return;
-    }
-
-    nextValues[targetIndex] = value;
-    commit(nextValues);
-    setActiveSlot(targetIndex >= selectedValues.length ? Math.min(targetIndex + 1, maxCards - 1) : targetIndex);
-  }
-
-  function handleRemoveActive() {
-    if (activeValue === undefined) {
-      return;
-    }
-
-    const nextValues = selectedValues.filter((_, index) => index !== normalizedActiveSlot);
-    commit(nextValues);
-    setActiveSlot(Math.max(0, Math.min(normalizedActiveSlot, nextValues.length)));
-  }
-
-  const pickerPanel = (
-    <div className={styles.pickerModalCard}>
-      <div className={styles.cardFieldHeader}>
-        <p className={styles.cardDeckSummary}>
-          Active slot: {activeValue === undefined ? `Card ${normalizedActiveSlot + 1}` : blackjackValueLabel(activeValue)}. Blackjack value selection ignores suits.
-        </p>
-        <button type="button" className={styles.pickerButton} onClick={() => setPickerOpen(false)}>
-          Close picker
-        </button>
-      </div>
-      <div className={styles.cardDeckBySuit}>
-        <div className={styles.cardSuitSection}>
-          <span className={styles.cardSuitLabel}>Blackjack values</span>
-          <div className={styles.cardSuitRow}>
-            {BLACKJACK_VALUE_OPTIONS.map((value) => (
-              <button
-                type="button"
-                className={styles.cardDeckButton}
-                key={`${label}-${value}`}
-                aria-label={`Set ${label} to ${blackjackValueLabel(value)}`}
-                onClick={() => handlePick(value)}
-              >
-                <BlackjackValueCard value={value} active={value === activeValue} />
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-
-  return (
-    <div className={styles.cardField}>
-      <div className={styles.fieldLabelHeader}>
-        <span>{label}</span>
-        {hint ? <HelpHint text={hint} label={`${label} explanation`} /> : null}
-      </div>
-
-      <div className={styles.cardFieldHeader}>
-        <div className={styles.cardSlotRow}>
-          {Array.from({ length: slotCount }, (_, index) => {
-            const value = selectedValues[index];
-
-            return (
-              <button
-                type="button"
-                className={styles.cardSlotButton}
-                key={`${label}-${index}`}
-                aria-label={value === undefined ? `Select ${label} ${index + 1}` : `Edit ${label} ${index + 1}`}
-                onClick={() => {
-                  setActiveSlot(index);
-                  setPickerOpen(true);
-                }}
-              >
-                <BlackjackValueCard value={value} empty={value === undefined} active={index === normalizedActiveSlot} />
-              </button>
-            );
-          })}
-        </div>
-
-        <div className={styles.cardFieldActions}>
-          <span className={styles.cardStatusText}>
-            {selectedValues.length} selected{maxCards > 1 ? `, up to ${maxCards}` : ""}
-          </span>
-          <button type="button" className={styles.pickerButton} onClick={() => setPickerOpen(true)}>
-            Choose values
-          </button>
-          <button type="button" className={styles.pickerButton} onClick={handleRemoveActive} disabled={activeValue === undefined}>
-            Remove active
-          </button>
-          <button
-            type="button"
-            className={styles.pickerButton}
-            onClick={() => {
-              onChange([]);
-              setActiveSlot(0);
-            }}
-            disabled={selectedValues.length === 0}
-          >
-            Clear
-          </button>
-        </div>
-      </div>
-
-      {pickerOpen ? (
-        <div className={styles.pickerModalBackdrop} onClick={() => setPickerOpen(false)}>
-          <div onClick={(event) => event.stopPropagation()}>
-            {pickerPanel}
-          </div>
-        </div>
-      ) : null}
-    </div>
-  );
-}
-
 export function BlackjackPage() {
   useWorkerCleanup();
 
@@ -310,6 +132,9 @@ export function BlackjackPage() {
     splitAcesOneCardOnly: true,
   });
   const blackjackAnalysis = useComputationState<BlackjackSolution>();
+  const normalizedDeckCount = normalizeInteger(blackjackInputs.deckCount, 0, 0, 8);
+  const normalizedRunningCount = Number.isFinite(blackjackInputs.runningCount) ? Math.trunc(blackjackInputs.runningCount) : 0;
+  const trueCount = normalizedDeckCount > 0 ? normalizedRunningCount / normalizedDeckCount : 0;
 
   function runBlackjackAnalysis() {
     void runAnalysisTask(blackjackAnalysis, async () => {
@@ -321,12 +146,10 @@ export function BlackjackPage() {
         throw new Error("Dealer upcard must contain exactly 1 value.");
       }
 
-      const normalizedDeckCount = normalizeInteger(blackjackInputs.deckCount, 0, 0, 8);
-      const runningCount = Number.isFinite(blackjackInputs.runningCount) ? Math.trunc(blackjackInputs.runningCount) : 0;
       const visibleValueUsage = new Map<number, number>();
       const playerCards = blackjackValuesToCards(blackjackInputs.playerValues, visibleValueUsage);
       const dealerCards = blackjackValuesToCards(blackjackInputs.dealerValues, visibleValueUsage);
-      const removedCards = approximateRemovedCardsFromRunningCount(runningCount, normalizedDeckCount);
+      const removedCards = approximateRemovedCardsFromRunningCount(normalizedRunningCount, normalizedDeckCount);
 
       return runCasinoWorkerTask("blackjack", {
         playerCards,
@@ -345,21 +168,13 @@ export function BlackjackPage() {
 
   const blackjackShoeHint = blackjackInputs.deckCount === 0
     ? "0 uses an infinite or unknown shoe model. Running-count adjustments are ignored in that mode."
-    : "Positive Hi-Lo counts assume more low cards are already gone. Negative counts assume more tens and aces were removed.";
+    : "Hi-Lo uses the running count and estimated decks remaining. Exact counting would need the real exposed/discarded cards.";
 
   return (
     <GamePageShell game={game} helper={<div className={styles.callout}>{blackjackShoeHint}</div>}>
-      <PageSection eyebrow="Rules" title="Count-aware blackjack" description="This page now favors fast hand entry and a practical Hi-Lo estimate over manually listing exposed cards.">
-        <ul className={styles.bulletList}>
-          <li>Player and dealer card entry is value-based, so suits are abstracted away for blackjack decisions.</li>
-          <li>Finite shoes can be approximated from a Hi-Lo running count instead of enumerating exposed cards.</li>
-          <li>A shoe value of 0 switches to an infinite or unknown composition model.</li>
-        </ul>
-      </PageSection>
-
       <PageSection eyebrow="Analyzer" title="Solve a blackjack hand" description="Pick the hand values, set the shoe estimate, and compare the EV of every legal action.">
         <div className={styles.contentStack}>
-          <div className={styles.controlGridWide}>
+          <div className={`${styles.controlGridWide} ${styles.feltBoard}`}>
             <BlackjackValuePickerField
               label="Player cards"
               hint="Choose the two blackjack values in your hand. Face cards are collapsed into 10 and suits are ignored."
@@ -374,9 +189,9 @@ export function BlackjackPage() {
               onChange={(dealerValues) => setBlackjackInputs((current) => ({ ...current, dealerValues }))}
               maxCards={1}
             />
-            <FieldLabel label="Shoe decks" hint="Use 0 for infinite or unknown. Otherwise enter the estimated remaining decks in the shoe.">
+            <FieldLabel label="Decks remaining" hint="Use 0 for infinite or unknown. For card counting, enter your estimated decks left so the true count can be derived.">
               <input
-                aria-label="Shoe decks"
+                aria-label="Decks remaining"
                 type="number"
                 min={0}
                 max={8}
@@ -403,7 +218,7 @@ export function BlackjackPage() {
           <p className={styles.helperText}>
             {blackjackInputs.deckCount === 0
               ? "Infinite or unknown mode uses neutral shoe composition and ignores the running count."
-              : "The running count is converted into an approximate set of removed low or high cards for a faster composition estimate."}
+              : `True count estimate: ${trueCount.toFixed(1)} (${normalizedRunningCount} running count / ${normalizedDeckCount} deck${normalizedDeckCount === 1 ? "" : "s"} remaining). The solver converts that count into representative removed low or high cards, so actual discard composition is still better when known.`}
           </p>
           <div className={styles.actionRow}><button type="button" className={styles.actionButton} onClick={runBlackjackAnalysis} disabled={blackjackAnalysis.pending}>{blackjackAnalysis.pending ? "Solving..." : "Solve hand EV"}</button></div>
           {blackjackAnalysis.result ? (
@@ -413,6 +228,7 @@ export function BlackjackPage() {
                 <div className={styles.metricCard}><span>Player total</span><strong>{blackjackAnalysis.result.playerTotal}</strong><small>{blackjackAnalysis.result.soft ? "Soft" : "Hard"} hand</small></div>
                 <div className={styles.metricCard}><span>Pair state</span><strong>{blackjackAnalysis.result.isPair ? "Pair" : "No pair"}</strong><small>{blackjackAnalysis.result.isNatural ? "Natural blackjack" : "Standard hand"}</small></div>
                 <div className={styles.metricCard}><span>Dealer bust</span><strong>{formatPercent(blackjackAnalysis.result.dealerDistribution.bust)}</strong><small>Natural: {formatPercent(blackjackAnalysis.result.dealerDistribution.natural)}</small></div>
+                <div className={styles.metricCard}><span>Hi-Lo</span><strong>{blackjackAnalysis.result.deckCount === 0 ? "Off" : trueCount.toFixed(1)}</strong><small>Running count {normalizedRunningCount}</small></div>
                 <div className={styles.metricCard}><span>Shoe state</span><strong>{Number.isFinite(blackjackAnalysis.result.remainingCards) ? `${blackjackAnalysis.result.remainingCards} cards` : "Infinite"}</strong><small>{blackjackAnalysis.result.deckCount === 0 ? "Infinite or unknown composition" : `${blackjackAnalysis.result.deckCount}-deck estimate, ${blackjackAnalysis.result.removedCardCount} count-derived removals`}</small></div>
               </div>
               <div className={styles.tableWrap}>
@@ -427,11 +243,19 @@ export function BlackjackPage() {
               </div>
               <ul className={styles.eventList}>
                 {blackjackAnalysis.result.notes.map((note) => <li key={note}><span>{note}</span></li>)}
-                {blackjackInputs.deckCount > 0 && blackjackInputs.runningCount !== 0 ? <li><span>Hi-Lo estimate: running count {Math.trunc(blackjackInputs.runningCount)} converted into approximate low/high removals.</span></li> : null}
+                {blackjackInputs.deckCount > 0 && blackjackInputs.runningCount !== 0 ? <li><span>Hi-Lo estimate: running count {normalizedRunningCount} converted into approximate low/high removals. For a sharper card-counting result, the missing information is the actual discard/exposed-card composition and decks remaining.</span></li> : null}
               </ul>
             </div>
           ) : <ResultState pending={blackjackAnalysis.pending} error={blackjackAnalysis.error} emptyMessage="Enter two player values, a dealer upcard value, and an optional shoe estimate to solve the hand." />}
         </div>
+      </PageSection>
+
+      <PageSection eyebrow="Rules" title="Count-aware blackjack" description="This page favors fast hand entry and a practical Hi-Lo estimate over manually listing exposed cards.">
+        <ul className={styles.bulletList}>
+          <li>Player and dealer card entry is value-based, so suits are abstracted away for blackjack decisions.</li>
+          <li>Finite shoes can be approximated from a Hi-Lo running count instead of enumerating exposed cards.</li>
+          <li>A shoe value of 0 switches to an infinite or unknown composition model.</li>
+        </ul>
       </PageSection>
     </GamePageShell>
   );
@@ -453,16 +277,12 @@ export function VideoPokerPage() {
 
   return (
     <GamePageShell game={game}>
-      <PageSection eyebrow="Rules" title="Exact hold analysis" description="Video poker is just a paytable plus draw enumeration, which makes it perfect for a dedicated exact-analysis page.">
-        <ul className={styles.bulletList}>
-          <li>This analyzer enumerates every draw for every one of the 32 possible hold masks.</li>
-          <li>The current implementation focuses on exact choice quality rather than chart memorization.</li>
-        </ul>
-      </PageSection>
       <PageSection eyebrow="Analyzer" title="Find the best hold" description="Enter a five-card hand and compare the exact EV of the best draws.">
         <div className={styles.contentStack}>
-          <CardPickerField label="Five-card hand" hint="Pick the exact five cards you were dealt before deciding what to hold." value={videoPokerHand} onChange={setVideoPokerHand} maxCards={5} presentation="dialog" />
-          <div className={styles.actionRow}><button type="button" className={styles.actionButton} onClick={runVideoPokerAnalysis} disabled={videoPokerAnalysis.pending}>{videoPokerAnalysis.pending ? "Enumerating..." : "Analyze holds"}</button></div>
+          <div className={styles.feltBoard}>
+            <CardPickerField label="Five-card hand" hint="Pick the exact five cards you were dealt before deciding what to hold." value={videoPokerHand} onChange={setVideoPokerHand} maxCards={5} presentation="dialog" />
+            <div className={styles.actionRow}><button type="button" className={styles.actionButton} onClick={runVideoPokerAnalysis} disabled={videoPokerAnalysis.pending}>{videoPokerAnalysis.pending ? "Enumerating..." : "Analyze holds"}</button></div>
+          </div>
           {videoPokerAnalysis.result ? (
             <div className={styles.contentStack}>
               <div className={styles.metricGrid}>
@@ -492,6 +312,12 @@ export function VideoPokerPage() {
           ) : <ResultState pending={videoPokerAnalysis.pending} error={videoPokerAnalysis.error} emptyMessage="Enter five cards to enumerate the exact hold EVs." />}
         </div>
       </PageSection>
+      <PageSection eyebrow="Rules" title="Exact hold analysis" description="Video poker is a paytable plus draw enumeration, so every hold can be compared exactly.">
+        <ul className={styles.bulletList}>
+          <li>This analyzer enumerates every draw for every one of the 32 possible hold masks.</li>
+          <li>The current implementation focuses on exact choice quality rather than chart memorization.</li>
+        </ul>
+      </PageSection>
     </GamePageShell>
   );
 }
@@ -512,16 +338,12 @@ export function ThreeCardPokerPage() {
 
   return (
     <GamePageShell game={game}>
-      <PageSection eyebrow="Rules" title="Ante/Play threshold" description="The base game is really an exact raise-or-fold threshold problem, so it benefits from having its own page and output table.">
-        <ul className={styles.bulletList}>
-          <li>Ante/Play and Pair Plus are separate products with separate probabilities.</li>
-          <li>The exact base-game decision is driven by the Q-6-4 threshold.</li>
-        </ul>
-      </PageSection>
       <PageSection eyebrow="Analyzer" title="Evaluate a Three Card Poker hand" description="Enter a hand and get the exact play-or-fold recommendation with side-bet context.">
         <div className={styles.contentStack}>
-          <CardPickerField label="Three-card hand" hint="Pick the three cards in your hand to test the play-or-fold threshold." value={threeCardHand} onChange={setThreeCardHand} maxCards={3} presentation="dialog" />
-          <div className={styles.actionRow}><button type="button" className={styles.actionButton} onClick={runThreeCardAnalysis} disabled={threeCardAnalysis.pending}>{threeCardAnalysis.pending ? "Enumerating..." : "Analyze decision"}</button></div>
+          <div className={styles.feltBoard}>
+            <CardPickerField label="Three-card hand" hint="Pick the three cards in your hand to test the play-or-fold threshold." value={threeCardHand} onChange={setThreeCardHand} maxCards={3} presentation="dialog" />
+            <div className={styles.actionRow}><button type="button" className={styles.actionButton} onClick={runThreeCardAnalysis} disabled={threeCardAnalysis.pending}>{threeCardAnalysis.pending ? "Enumerating..." : "Analyze decision"}</button></div>
+          </div>
           {threeCardAnalysis.result ? (
             <div className={styles.contentStack}>
               <div className={styles.resultPanel}>
@@ -537,6 +359,12 @@ export function ThreeCardPokerPage() {
             </div>
           ) : <ResultState pending={threeCardAnalysis.pending} error={threeCardAnalysis.error} emptyMessage="Enter a three-card hand to calculate exact Ante/Play EV." />}
         </div>
+      </PageSection>
+      <PageSection eyebrow="Rules" title="Ante/Play threshold" description="The base game is an exact raise-or-fold threshold problem.">
+        <ul className={styles.bulletList}>
+          <li>Ante/Play and Pair Plus are separate products with separate probabilities.</li>
+          <li>The exact base-game decision is driven by the Q-6-4 threshold.</li>
+        </ul>
       </PageSection>
     </GamePageShell>
   );
@@ -558,15 +386,9 @@ export function PaiGowPokerPage() {
 
   return (
     <GamePageShell game={game}>
-      <PageSection eyebrow="Rules" title="Split-first Pai Gow guidance" description="This page is for hand-setting help, not generic table copy, so it gets a dedicated workflow around one seven-card input.">
-        <ul className={styles.bulletList}>
-          <li>The current version uses a best-split heuristic plus simulation against random dealer hands.</li>
-          <li>Commission and banker-wins-ties behavior are already reflected in the estimated EV.</li>
-        </ul>
-      </PageSection>
       <PageSection eyebrow="Analyzer" title="Recommend a Pai Gow split" description="Enter one seven-card hand and compare the simulated strength of the leading splits.">
         <div className={styles.contentStack}>
-          <div className={styles.controlGrid}>
+          <div className={`${styles.controlGrid} ${styles.feltBoard}`}>
             <CardPickerField label="Seven-card hand" hint="Pick all seven cards before comparing the best Pai Gow splits." value={paiGowInputs.hand} onChange={(hand) => setPaiGowInputs((current) => ({ ...current, hand }))} maxCards={7} presentation="dialog" />
             <FieldLabel label="Simulation trials" hint="How many random dealer comparisons to run for each candidate split."><input aria-label="Simulation trials" type="number" min={60} step={20} value={paiGowInputs.trials} onChange={(event) => setPaiGowInputs((current) => ({ ...current, trials: Number(event.target.value) }))} /></FieldLabel>
           </div>
@@ -608,6 +430,12 @@ export function PaiGowPokerPage() {
             </div>
           ) : <ResultState pending={paiGowAnalysis.pending} error={paiGowAnalysis.error} emptyMessage="Enter a seven-card Pai Gow hand to simulate split EV." />}
         </div>
+      </PageSection>
+      <PageSection eyebrow="Rules" title="Split-first Pai Gow guidance" description="This page is for hand-setting help around one seven-card input.">
+        <ul className={styles.bulletList}>
+          <li>The current version uses a best-split heuristic plus simulation against random dealer hands.</li>
+          <li>Commission and banker-wins-ties behavior are already reflected in the estimated EV.</li>
+        </ul>
       </PageSection>
     </GamePageShell>
   );

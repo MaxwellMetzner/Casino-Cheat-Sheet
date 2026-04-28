@@ -4,6 +4,7 @@ export * from "./cards";
 export * from "./catalog";
 export * from "./combinatorics";
 export * from "./craps";
+export * from "./keno";
 export * from "./omaha";
 export * from "./pai-gow-poker";
 export * from "./poker-equity";

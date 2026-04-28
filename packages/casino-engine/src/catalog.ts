@@ -120,6 +120,28 @@ export const casinoCatalog: CasinoGameEntry[] = [
     ],
   },
   {
+    slug: "keno",
+    title: "Keno",
+    family: "exact-combinatorics",
+    stage: "live",
+    blurb:
+      "Exact 80-number ticket odds with editable spot selection, sample payouts, hit distribution, and EV.",
+    firstMilestone:
+      "Make the 80-number board usable first, then show hit probabilities and return by catch count.",
+    rulesFocus:
+      "A standard keno draw picks 20 numbers from 80; a ticket wins according to how many selected spots are caught.",
+    oddsFocus:
+      "Every hit count is a hypergeometric probability: chosen hits, missed chosen spots, and the remaining draw pool.",
+    analyzerFocus:
+      "Select 1 to 10 spots, compare the exact hit distribution, and read EV against the active paytable.",
+    outputs: [
+      "Hit probability",
+      "EV per ticket",
+      "House edge",
+      "Catch distribution",
+    ],
+  },
+  {
     slug: "blackjack",
     title: "Blackjack",
     family: "exact-combinatorics",
@@ -271,28 +293,6 @@ export const casinoCatalog: CasinoGameEntry[] = [
       "Live outs",
       "Removal effects",
       "Percentile",
-    ],
-  },
-  {
-    slug: "toy-gto-lab",
-    title: "Toy CFR Research",
-    family: "research-mode",
-    stage: "research",
-    blurb:
-      "Counterfactual regret minimization notes and tiny toy-game experiments for Kuhn, Leduc, and other tightly constrained research trees.",
-    firstMilestone:
-      "Keep solver claims narrow and educational until there is a serious offline abstraction pipeline behind them.",
-    rulesFocus:
-      "Small imperfect-information games are the right place to teach regret minimization without overselling browser compute.",
-    oddsFocus:
-      "Outputs should explain exploitability, strategy frequencies, and convergence, not promise production no-limit solutions.",
-    analyzerFocus:
-      "Document what toy CFR experiments can teach, and what would still be missing before scaling to real poker trees.",
-    outputs: [
-      "Strategy frequencies",
-      "Regret trends",
-      "Exploitability",
-      "Convergence notes",
     ],
   },
 ];

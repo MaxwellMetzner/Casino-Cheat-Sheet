@@ -32,24 +32,30 @@ interface BoardRect {
   shape: "cell" | "spot";
 }
 
+const BOARD_CONTENT_Y_OFFSET = 34;
+
+function shiftBoardY(value: number) {
+  return value - BOARD_CONTENT_Y_OFFSET;
+}
+
 const BOARD = {
   width: 1000,
   height: 860,
   zero: {
     x: 60,
-    y: 105,
+    y: shiftBoardY(105),
     width: 120,
     height: 504,
   },
   topLine: {
     x: 60,
-    y: 630,
+    y: shiftBoardY(630),
     width: 120,
     height: 188,
   },
   grid: {
     x: 200,
-    y: 105,
+    y: shiftBoardY(105),
     cellWidth: 170,
     cellHeight: 42,
     rows: 12,
@@ -57,12 +63,12 @@ const BOARD = {
   },
   street: {
     x: 710,
-    y: 105,
+    y: shiftBoardY(105),
     width: 88,
   },
   outside: {
     x: 200,
-    y: 630,
+    y: shiftBoardY(630),
     width: 598,
     dozenHeight: 56,
     columnHeight: 56,
@@ -279,7 +285,6 @@ function RouletteBoardArtwork({ rouletteKind }: { rouletteKind: RouletteKind }) 
   const panelId = `roulette-panel-${rouletteKind}`;
   const railId = `roulette-rail-${rouletteKind}`;
   const goldId = `roulette-gold-${rouletteKind}`;
-  const title = rouletteKind === "american" ? "American Double Zero Layout" : "European Single Zero Layout";
   const evenMoneyRowY = BOARD.outside.y + BOARD.outside.dozenHeight + BOARD.outside.columnHeight;
 
   return (
@@ -310,18 +315,6 @@ function RouletteBoardArtwork({ rouletteKind }: { rouletteKind: RouletteKind }) 
       <rect x="38" y="38" width="924" height="784" rx="28" fill={`url(#${gradientId})`} />
       <rect x="38" y="38" width="924" height="784" rx="28" fill="none" stroke={`url(#${goldId})`} strokeWidth="2" opacity="0.85" />
       <rect x="52" y="52" width="896" height="756" rx="22" fill="none" stroke="rgba(245, 231, 198, 0.12)" strokeWidth="1.5" />
-
-      <text
-        x="500"
-        y="78"
-        textAnchor="middle"
-        fill="#f4ead3"
-        fontFamily={DISPLAY_FONT}
-        fontSize="27"
-        letterSpacing="1.8"
-      >
-        {title}
-      </text>
 
       <rect x={BOARD.zero.x} y={BOARD.zero.y} width={BOARD.zero.width} height={BOARD.zero.height} rx="22" fill={`url(#${panelId})`} />
       <rect x={BOARD.street.x} y={BOARD.street.y} width={BOARD.street.width} height={BOARD.grid.cellHeight * BOARD.grid.rows} rx="18" fill={`url(#${panelId})`} opacity="0.9" />
@@ -378,20 +371,20 @@ function RouletteBoardArtwork({ rouletteKind }: { rouletteKind: RouletteKind }) 
 
       {rouletteKind === "american" ? (
         <>
-          <rect x="70" y="115" width="100" height="238" rx="18" fill="#13533f" stroke={`url(#${goldId})`} strokeWidth="2" />
-          <rect x="70" y="361" width="100" height="238" rx="18" fill="#13533f" stroke={`url(#${goldId})`} strokeWidth="2" />
-          <text x="120" y="246" textAnchor="middle" fill="#f7eed8" fontFamily={DISPLAY_FONT} fontWeight="700" fontSize="34">0</text>
-          <text x="120" y="492" textAnchor="middle" fill="#f7eed8" fontFamily={DISPLAY_FONT} fontWeight="700" fontSize="34">00</text>
-          <text x="120" y="682" textAnchor="middle" fill="#f7eed8" fontFamily={DISPLAY_FONT} fontWeight="700" fontSize="18">TOP LINE</text>
-          <text x="120" y="722" textAnchor="middle" fill="#f7eed8" fontFamily={DISPLAY_FONT} fontWeight="700" fontSize="17">0-00-1-2-3</text>
-          <text x="120" y="754" textAnchor="middle" fill="rgba(247, 238, 216, 0.75)" fontFamily={DISPLAY_FONT} fontSize="12">American only</text>
+          <rect x="70" y={shiftBoardY(115)} width="100" height="238" rx="18" fill="#13533f" stroke={`url(#${goldId})`} strokeWidth="2" />
+          <rect x="70" y={shiftBoardY(361)} width="100" height="238" rx="18" fill="#13533f" stroke={`url(#${goldId})`} strokeWidth="2" />
+          <text x="120" y={shiftBoardY(246)} textAnchor="middle" fill="#f7eed8" fontFamily={DISPLAY_FONT} fontWeight="700" fontSize="34">0</text>
+          <text x="120" y={shiftBoardY(492)} textAnchor="middle" fill="#f7eed8" fontFamily={DISPLAY_FONT} fontWeight="700" fontSize="34">00</text>
+          <text x="120" y={shiftBoardY(682)} textAnchor="middle" fill="#f7eed8" fontFamily={DISPLAY_FONT} fontWeight="700" fontSize="18">TOP LINE</text>
+          <text x="120" y={shiftBoardY(722)} textAnchor="middle" fill="#f7eed8" fontFamily={DISPLAY_FONT} fontWeight="700" fontSize="17">0-00-1-2-3</text>
+          <text x="120" y={shiftBoardY(754)} textAnchor="middle" fill="rgba(247, 238, 216, 0.75)" fontFamily={DISPLAY_FONT} fontSize="12">American only</text>
         </>
       ) : (
         <>
-          <rect x="70" y="115" width="100" height="484" rx="18" fill="#13533f" stroke={`url(#${goldId})`} strokeWidth="2" />
-          <text x="120" y="363" textAnchor="middle" fill="#f7eed8" fontFamily={DISPLAY_FONT} fontWeight="700" fontSize="40">0</text>
-          <text x="120" y="694" textAnchor="middle" fill="#f7eed8" fontFamily={DISPLAY_FONT} fontWeight="700" fontSize="18">SINGLE ZERO</text>
-          <text x="120" y="726" textAnchor="middle" fill="rgba(247, 238, 216, 0.75)" fontFamily={DISPLAY_FONT} fontSize="12">European board</text>
+          <rect x="70" y={shiftBoardY(115)} width="100" height="484" rx="18" fill="#13533f" stroke={`url(#${goldId})`} strokeWidth="2" />
+          <text x="120" y={shiftBoardY(363)} textAnchor="middle" fill="#f7eed8" fontFamily={DISPLAY_FONT} fontWeight="700" fontSize="40">0</text>
+          <text x="120" y={shiftBoardY(694)} textAnchor="middle" fill="#f7eed8" fontFamily={DISPLAY_FONT} fontWeight="700" fontSize="18">SINGLE ZERO</text>
+          <text x="120" y={shiftBoardY(726)} textAnchor="middle" fill="rgba(247, 238, 216, 0.75)" fontFamily={DISPLAY_FONT} fontSize="12">European board</text>
         </>
       )}
 
@@ -506,21 +499,21 @@ export function RouletteBoardStage({ rouletteKind, stakeForBet, addChip, removeC
           <RouletteBoardHotspot
             label="0 straight up"
             stake={stakeForBet("straightUp:0")}
-            rect={{ x: 70, y: 115, width: 100, height: 238, layer: 1, shape: "cell" }}
+            rect={{ x: 70, y: shiftBoardY(115), width: 100, height: 238, layer: 1, shape: "cell" }}
             onAdd={() => addChip(createRouletteStraightUpBet(rouletteKind, "0"))}
             onRemove={() => removeChip("straightUp:0")}
           />
           <RouletteBoardHotspot
             label="00 straight up"
             stake={stakeForBet("straightUp:00")}
-            rect={{ x: 70, y: 361, width: 100, height: 238, layer: 1, shape: "cell" }}
+            rect={{ x: 70, y: shiftBoardY(361), width: 100, height: 238, layer: 1, shape: "cell" }}
             onAdd={() => addChip(createRouletteStraightUpBet(rouletteKind, "00"))}
             onRemove={() => removeChip("straightUp:00")}
           />
           <RouletteBoardHotspot
             label="0-00-1-2-3"
             stake={stakeForBet("firstFiveAmerican:0-00-1-2-3")}
-            rect={{ x: 70, y: 640, width: 100, height: 168, layer: 1, shape: "cell" }}
+            rect={{ x: 70, y: shiftBoardY(640), width: 100, height: 168, layer: 1, shape: "cell" }}
             onAdd={() => addChip(createRouletteFirstFiveBet())}
             onRemove={() => removeChip("firstFiveAmerican:0-00-1-2-3")}
           />
@@ -529,7 +522,7 @@ export function RouletteBoardStage({ rouletteKind, stakeForBet, addChip, removeC
         <RouletteBoardHotspot
           label="0 straight up"
           stake={stakeForBet("straightUp:0")}
-          rect={{ x: 70, y: 115, width: 100, height: 484, layer: 1, shape: "cell" }}
+          rect={{ x: 70, y: shiftBoardY(115), width: 100, height: 484, layer: 1, shape: "cell" }}
           onAdd={() => addChip(createRouletteStraightUpBet(rouletteKind, "0"))}
           onRemove={() => removeChip("straightUp:0")}
         />

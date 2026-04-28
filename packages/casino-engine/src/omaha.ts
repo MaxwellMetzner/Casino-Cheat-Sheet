@@ -60,8 +60,8 @@ export function simulateOmahaEquity({
   const knownCards = [...heroHoleCards, ...boardCards, ...villainHoleCards];
   const deck = remainingDeck(knownCards);
   const boardNeeded = 5 - boardCards.length;
-  const unknownOpponents = opponentCount - (villainHoleCards.length === 4 ? 1 : 0);
-  const totalUnknownCards = boardNeeded + (villainHoleCards.length === 0 ? 4 : 0) + (unknownOpponents * 4);
+  const additionalOpponents = Math.max(0, opponentCount - 1);
+  const totalUnknownCards = boardNeeded + (villainHoleCards.length === 0 ? 4 : 0) + (additionalOpponents * 4);
   const actualTrials = totalUnknownCards === 0 ? 1 : trials;
   let wins = 0;
   let losses = 0;
@@ -84,7 +84,7 @@ export function simulateOmahaEquity({
       }
     }
 
-    for (let index = 0; index < unknownOpponents; index += 1) {
+    for (let index = 0; index < additionalOpponents; index += 1) {
       const sampledHand = sampleWithoutReplacement(deck.filter((card) => !usedCodes.has(card.code)), 4);
       opponentHands.push(sampledHand);
 
