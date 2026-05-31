@@ -501,7 +501,7 @@ export function BlackjackValuePickerField({
     commit(nextValues);
     setActiveSlot(targetIndex >= selectedValues.length ? Math.min(targetIndex + 1, maxCards - 1) : targetIndex);
 
-    if (autoCloseOnComplete && nextValues.length >= maxCards) {
+    if (autoCloseOnComplete) {
       setPickerOpen(false);
     }
   }
@@ -517,7 +517,7 @@ export function BlackjackValuePickerField({
   }
 
   const pickerPanel = (
-    <div className={styles.pickerModalCard} role="dialog" aria-modal="true" aria-labelledby={pickerTitleId}>
+    <div className={`${styles.pickerModalCard} ${styles.blackjackPickerPanel}`} role="dialog" aria-modal="true" aria-labelledby={pickerTitleId}>
       <div className={styles.compactPickerHeader}>
         <div>
           <strong id={pickerTitleId}>{label}</strong>
@@ -627,6 +627,7 @@ export function DiceRollField({
   onResolve?: () => void;
 }) {
   const diceOptions = Array.from({ length: 6 }, (_, index) => index + 1);
+  const selectedSum = dieOne + dieTwo;
 
   return (
     <div className={styles.diceField}>
@@ -635,28 +636,29 @@ export function DiceRollField({
         {hint ? <HelpHint text={hint} label={`${label} explanation`} /> : null}
       </div>
 
-      <div className={styles.diceSelectorGrid}>
-        {[
-          { title: "Die one", value: dieOne, onChange: onDieOneChange },
-          { title: "Die two", value: dieTwo, onChange: onDieTwoChange },
-        ].map((die) => (
-          <div className={styles.diceLane} key={die.title}>
-            <span className={styles.cardStatusText}>{die.title}</span>
-            <div className={styles.diceOptions}>
-              {diceOptions.map((value) => (
-                <button
-                  type="button"
-                  className={`${styles.dieButton} ${die.value === value ? styles.dieButtonActive : ""}`}
-                  key={`${die.title}-${value}`}
-                  aria-label={`${die.title} ${value}`}
-                  onClick={() => die.onChange(value)}
-                >
-                  <DieFace value={value} />
-                </button>
-              ))}
-            </div>
-          </div>
-        ))}
+      <div className={styles.dicePairGrid}>
+        {diceOptions.flatMap((first) => diceOptions.map((second) => {
+          const active = dieOne === first && dieTwo === second;
+
+          return (
+            <button
+              type="button"
+              className={`${styles.dicePairButton} ${active ? styles.dieButtonActive : ""}`}
+              key={`${first}-${second}`}
+              aria-label={`Roll ${first} and ${second}`}
+              onClick={() => {
+                onDieOneChange(first);
+                onDieTwoChange(second);
+              }}
+            >
+              <span className={styles.dicePairFaces}>
+                <DieFace value={first} />
+                <DieFace value={second} />
+              </span>
+              <span>{first + second}</span>
+            </button>
+          );
+        }))}
       </div>
 
       <div className={styles.selectedDiceSummary}>
@@ -666,7 +668,7 @@ export function DiceRollField({
         </div>
         <div className={styles.selectedDiceMeta}>
           <strong>{formatRollDescriptor(dieOne, dieTwo)}</strong>
-          <span>{dieOne} + {dieTwo} = {dieOne + dieTwo}</span>
+          <span>{dieOne} + {dieTwo} = {selectedSum}</span>
         </div>
         {onResolve ? (
           <button type="button" className={styles.actionButton} onClick={onResolve}>

@@ -22,7 +22,7 @@ import {
   runAnalysisTask,
   useComputationState,
 } from "../casino-page-helpers";
-import { BlackjackValuePickerField, CardPickerField, FieldLabel, ToggleField } from "../input-primitives";
+import { blackjackValueLabel, CardPickerField, FieldLabel, ToggleField } from "../input-primitives";
 import styles from "../casino-dashboard.module.css";
 
 const GAME_BY_SLUG = Object.fromEntries(
@@ -50,6 +50,58 @@ const BLACKJACK_RANK_BY_VALUE = {
   10: "T",
   11: "A",
 } as const;
+const BLACKJACK_DEALER_TILES = [2, 3, 4, 5, 6, 7, 8, 9, 10, 11] as const;
+const BLACKJACK_HAND_GROUPS = [
+  {
+    title: "Hard",
+    hands: [
+      { label: "5", values: [3, 2] },
+      { label: "6", values: [4, 2] },
+      { label: "7", values: [5, 2] },
+      { label: "8", values: [6, 2] },
+      { label: "9", values: [7, 2] },
+      { label: "10", values: [8, 2] },
+      { label: "11", values: [9, 2] },
+      { label: "12", values: [10, 2] },
+      { label: "13", values: [10, 3] },
+      { label: "14", values: [10, 4] },
+      { label: "15", values: [10, 5] },
+      { label: "16", values: [10, 6] },
+      { label: "17", values: [10, 7] },
+      { label: "18", values: [10, 8] },
+      { label: "19", values: [10, 9] },
+      { label: "20", values: [10, 10] },
+    ],
+  },
+  {
+    title: "Soft",
+    hands: [
+      { label: "A,2", values: [11, 2] },
+      { label: "A,3", values: [11, 3] },
+      { label: "A,4", values: [11, 4] },
+      { label: "A,5", values: [11, 5] },
+      { label: "A,6", values: [11, 6] },
+      { label: "A,7", values: [11, 7] },
+      { label: "A,8", values: [11, 8] },
+      { label: "A,9", values: [11, 9] },
+    ],
+  },
+  {
+    title: "Pairs",
+    hands: [
+      { label: "A,A", values: [11, 11] },
+      { label: "10,10", values: [10, 10] },
+      { label: "9,9", values: [9, 9] },
+      { label: "8,8", values: [8, 8] },
+      { label: "7,7", values: [7, 7] },
+      { label: "6,6", values: [6, 6] },
+      { label: "5,5", values: [5, 5] },
+      { label: "4,4", values: [4, 4] },
+      { label: "3,3", values: [3, 3] },
+      { label: "2,2", values: [2, 2] },
+    ],
+  },
+] as const;
 
 function useWorkerCleanup() {
   useEffect(() => () => {
@@ -117,6 +169,153 @@ function ExactCardStrip({ cards, emptyLabel = "None" }: { cards: Card[]; emptyLa
   );
 }
 
+function blackjackValueSignature(values: readonly number[]) {
+  return [...values].sort((left, right) => left - right).join("-");
+}
+
+function formatBlackjackValues(values: readonly number[]) {
+  return values.length > 0 ? values.map(blackjackValueLabel).join(" + ") : "None";
+}
+
+function BlackjackQuickTiles({
+  playerValues,
+  dealerValues,
+  onPlayerValuesChange,
+  onDealerValuesChange,
+}: {
+  playerValues: number[];
+  dealerValues: number[];
+  onPlayerValuesChange: (values: number[]) => void;
+  onDealerValuesChange: (values: number[]) => void;
+}) {
+  const activePlayerSignature = blackjackValueSignature(playerValues);
+  const activeDealerValue = dealerValues[0];
+
+  return (
+    <div className={styles.blackjackQuickPanel}>
+      <div className={styles.compactPickerHeader}>
+        <div>
+          <strong>Quick hand table</strong>
+          <p className={styles.cardDeckSummary}>
+            {formatBlackjackValues(playerValues)} vs {formatBlackjackValues(dealerValues)}
+          </p>
+        </div>
+      </div>
+
+      <div className={styles.blackjackQuickGroups}>
+        {BLACKJACK_HAND_GROUPS.map((group) => (
+          <div className={styles.blackjackQuickGroup} key={group.title}>
+            <span className={styles.cardSuitLabel}>{group.title}</span>
+            <div className={styles.blackjackHandTileGrid}>
+              {group.hands.map((hand) => {
+                const active = activePlayerSignature === blackjackValueSignature(hand.values);
+
+                return (
+                  <button
+                    type="button"
+                    className={`${styles.blackjackQuickTile} ${active ? styles.boardButtonActive : ""}`}
+                    key={`${group.title}-${hand.label}`}
+                    aria-pressed={active}
+                    onClick={() => onPlayerValuesChange([...hand.values])}
+                  >
+                    {hand.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+
+        <div className={styles.blackjackQuickGroup}>
+          <span className={styles.cardSuitLabel}>Dealer</span>
+          <div className={styles.blackjackDealerGrid}>
+            {BLACKJACK_DEALER_TILES.map((value) => {
+              const active = activeDealerValue === value;
+
+              return (
+                <button
+                  type="button"
+                  className={`${styles.blackjackQuickTile} ${active ? styles.boardButtonActive : ""}`}
+                  key={value}
+                  aria-pressed={active}
+                  onClick={() => onDealerValuesChange([value])}
+                >
+                  {blackjackValueLabel(value)}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function BlackjackSolverSidebar({
+  result,
+  pending,
+  error,
+  playerValues,
+  dealerValues,
+  normalizedDeckCount,
+  normalizedRunningCount,
+  trueCount,
+  onSolve,
+}: {
+  result: BlackjackSolution | null;
+  pending: boolean;
+  error: string;
+  playerValues: number[];
+  dealerValues: number[];
+  normalizedDeckCount: number;
+  normalizedRunningCount: number;
+  trueCount: number;
+  onSolve: () => void;
+}) {
+  return (
+    <aside className={`${styles.sidebarStack} ${styles.blackjackSolverSidebar}`}>
+      <div className={styles.compactPanel}>
+        <span className={styles.compactPanelTitle}>Current hand</span>
+        <div className={styles.blackjackSelectionRows}>
+          <div>
+            <span>Player</span>
+            <strong>{formatBlackjackValues(playerValues)}</strong>
+          </div>
+          <div>
+            <span>Dealer</span>
+            <strong>{formatBlackjackValues(dealerValues)}</strong>
+          </div>
+          <div>
+            <span>Shoe</span>
+            <strong>{normalizedDeckCount === 0 ? "Infinite" : `${normalizedDeckCount} deck${normalizedDeckCount === 1 ? "" : "s"}`}</strong>
+          </div>
+          <div>
+            <span>Hi-Lo</span>
+            <strong>{normalizedDeckCount === 0 ? "Off" : `${trueCount.toFixed(1)} true`}</strong>
+          </div>
+        </div>
+      </div>
+
+      <button type="button" className={styles.actionButton} onClick={onSolve} disabled={pending}>
+        {pending ? "Solving..." : "Solve hand EV"}
+      </button>
+
+      {result ? (
+        <div className={styles.blackjackMetricStack}>
+          <div className={styles.metricCard}><span>Best action</span><strong>{result.bestAction}</strong><small>Best EV: {formatUnits(result.bestEv)}</small></div>
+          <div className={styles.metricCard}><span>Player total</span><strong>{result.playerTotal}</strong><small>{result.soft ? "Soft" : "Hard"} hand</small></div>
+          <div className={styles.metricCard}><span>Pair state</span><strong>{result.isPair ? "Pair" : "No pair"}</strong><small>{result.isNatural ? "Natural blackjack" : "Standard hand"}</small></div>
+          <div className={styles.metricCard}><span>Dealer bust</span><strong>{formatPercent(result.dealerDistribution.bust)}</strong><small>Natural: {formatPercent(result.dealerDistribution.natural)}</small></div>
+          <div className={styles.metricCard}><span>Hi-Lo</span><strong>{result.deckCount === 0 ? "Off" : trueCount.toFixed(1)}</strong><small>Running count {normalizedRunningCount}</small></div>
+          <div className={styles.metricCard}><span>Shoe state</span><strong>{Number.isFinite(result.remainingCards) ? `${result.remainingCards} cards` : "Infinite"}</strong><small>{result.deckCount === 0 ? "Infinite or unknown" : `${result.deckCount}-deck estimate`}</small></div>
+        </div>
+      ) : (
+        <ResultState pending={pending} error={error} emptyMessage="Select the hand, dealer upcard, shoe size, and count, then solve." />
+      )}
+    </aside>
+  );
+}
+
 export function BlackjackPage() {
   useWorkerCleanup();
 
@@ -174,63 +373,63 @@ export function BlackjackPage() {
     <GamePageShell game={game} helper={<div className={styles.callout}>{blackjackShoeHint}</div>}>
       <PageSection eyebrow="Analyzer" title="Solve a blackjack hand" description="Pick the hand values, set the shoe estimate, and compare the EV of every legal action.">
         <div className={styles.contentStack}>
-          <div className={`${styles.controlGridWide} ${styles.feltBoard}`}>
-            <BlackjackValuePickerField
-              label="Player cards"
-              hint="Choose the two blackjack values in your hand. Face cards are collapsed into 10 and suits are ignored."
-              values={blackjackInputs.playerValues}
-              onChange={(playerValues) => setBlackjackInputs((current) => ({ ...current, playerValues }))}
-              maxCards={2}
-            />
-            <BlackjackValuePickerField
-              label="Dealer upcard"
-              hint="Pick the dealer's visible blackjack value."
-              values={blackjackInputs.dealerValues}
-              onChange={(dealerValues) => setBlackjackInputs((current) => ({ ...current, dealerValues }))}
-              maxCards={1}
-            />
-            <FieldLabel label="Decks remaining" hint="Use 0 for infinite or unknown. For card counting, enter your estimated decks left so the true count can be derived.">
-              <input
-                aria-label="Decks remaining"
-                type="number"
-                min={0}
-                max={8}
-                step={1}
-                value={blackjackInputs.deckCount}
-                onChange={(event) => setBlackjackInputs((current) => ({ ...current, deckCount: Number(event.target.value) }))}
+          <div className={styles.boardFirstGrid}>
+            <div className={`${styles.boardPrimary} ${styles.feltBoard} ${styles.blackjackControlSurface}`}>
+              <BlackjackQuickTiles
+                playerValues={blackjackInputs.playerValues}
+                dealerValues={blackjackInputs.dealerValues}
+                onPlayerValuesChange={(playerValues) => setBlackjackInputs((current) => ({ ...current, playerValues }))}
+                onDealerValuesChange={(dealerValues) => setBlackjackInputs((current) => ({ ...current, dealerValues }))}
               />
-            </FieldLabel>
-            <FieldLabel label="Hi-Lo running count" hint="Positive counts mean more low cards are gone. Negative counts mean more tens and aces are gone.">
-              <input
-                aria-label="Hi-Lo running count"
-                type="number"
-                step={1}
-                value={blackjackInputs.runningCount}
-                onChange={(event) => setBlackjackInputs((current) => ({ ...current, runningCount: Number(event.target.value) }))}
-                disabled={blackjackInputs.deckCount === 0}
-              />
-            </FieldLabel>
-            <ToggleField label="Dealer hits soft 17" hint="If enabled, the dealer draws on soft 17 instead of standing." checked={blackjackInputs.dealerHitsSoft17} onChange={(dealerHitsSoft17) => setBlackjackInputs((current) => ({ ...current, dealerHitsSoft17 }))} />
-            <ToggleField label="Late surrender" hint="Lets the player surrender after the dealer checks for blackjack." checked={blackjackInputs.surrender} onChange={(surrender) => setBlackjackInputs((current) => ({ ...current, surrender }))} />
-            <ToggleField label="Double after split" hint="Allows doubling on hands created by a split." checked={blackjackInputs.doubleAfterSplit} onChange={(doubleAfterSplit) => setBlackjackInputs((current) => ({ ...current, doubleAfterSplit }))} />
-            <ToggleField label="One card on split aces" hint="Common casino rule where split aces receive only one additional card each." checked={blackjackInputs.splitAcesOneCardOnly} onChange={(splitAcesOneCardOnly) => setBlackjackInputs((current) => ({ ...current, splitAcesOneCardOnly }))} />
+              <div className={styles.blackjackOptionGrid}>
+                <FieldLabel label="Decks remaining" hint="Use 0 for infinite or unknown. For card counting, enter your estimated decks left so the true count can be derived.">
+                  <input
+                    aria-label="Decks remaining"
+                    type="number"
+                    min={0}
+                    max={8}
+                    step={1}
+                    value={blackjackInputs.deckCount}
+                    onChange={(event) => setBlackjackInputs((current) => ({ ...current, deckCount: Number(event.target.value) }))}
+                  />
+                </FieldLabel>
+                <FieldLabel label="Hi-Lo running count" hint="Positive counts mean more low cards are gone. Negative counts mean more tens and aces are gone.">
+                  <input
+                    aria-label="Hi-Lo running count"
+                    type="number"
+                    step={1}
+                    value={blackjackInputs.runningCount}
+                    onChange={(event) => setBlackjackInputs((current) => ({ ...current, runningCount: Number(event.target.value) }))}
+                    disabled={blackjackInputs.deckCount === 0}
+                  />
+                </FieldLabel>
+                <ToggleField label="Dealer hits soft 17" hint="If enabled, the dealer draws on soft 17 instead of standing." checked={blackjackInputs.dealerHitsSoft17} onChange={(dealerHitsSoft17) => setBlackjackInputs((current) => ({ ...current, dealerHitsSoft17 }))} />
+                <ToggleField label="Late surrender" hint="Lets the player surrender after the dealer checks for blackjack." checked={blackjackInputs.surrender} onChange={(surrender) => setBlackjackInputs((current) => ({ ...current, surrender }))} />
+                <ToggleField label="Double after split" hint="Allows doubling on hands created by a split." checked={blackjackInputs.doubleAfterSplit} onChange={(doubleAfterSplit) => setBlackjackInputs((current) => ({ ...current, doubleAfterSplit }))} />
+                <ToggleField label="One card on split aces" hint="Common casino rule where split aces receive only one additional card each." checked={blackjackInputs.splitAcesOneCardOnly} onChange={(splitAcesOneCardOnly) => setBlackjackInputs((current) => ({ ...current, splitAcesOneCardOnly }))} />
+              </div>
+            </div>
+
+            <BlackjackSolverSidebar
+              result={blackjackAnalysis.result}
+              pending={blackjackAnalysis.pending}
+              error={blackjackAnalysis.error}
+              playerValues={blackjackInputs.playerValues}
+              dealerValues={blackjackInputs.dealerValues}
+              normalizedDeckCount={normalizedDeckCount}
+              normalizedRunningCount={normalizedRunningCount}
+              trueCount={trueCount}
+              onSolve={runBlackjackAnalysis}
+            />
           </div>
+
           <p className={styles.helperText}>
             {blackjackInputs.deckCount === 0
               ? "Infinite or unknown mode uses neutral shoe composition and ignores the running count."
               : `True count estimate: ${trueCount.toFixed(1)} (${normalizedRunningCount} running count / ${normalizedDeckCount} deck${normalizedDeckCount === 1 ? "" : "s"} remaining). The solver converts that count into representative removed low or high cards, so actual discard composition is still better when known.`}
           </p>
-          <div className={styles.actionRow}><button type="button" className={styles.actionButton} onClick={runBlackjackAnalysis} disabled={blackjackAnalysis.pending}>{blackjackAnalysis.pending ? "Solving..." : "Solve hand EV"}</button></div>
           {blackjackAnalysis.result ? (
             <div className={styles.contentStack}>
-              <div className={styles.metricGrid}>
-                <div className={styles.metricCard}><span>Best action</span><strong>{blackjackAnalysis.result.bestAction}</strong><small>Best EV: {formatUnits(blackjackAnalysis.result.bestEv)}</small></div>
-                <div className={styles.metricCard}><span>Player total</span><strong>{blackjackAnalysis.result.playerTotal}</strong><small>{blackjackAnalysis.result.soft ? "Soft" : "Hard"} hand</small></div>
-                <div className={styles.metricCard}><span>Pair state</span><strong>{blackjackAnalysis.result.isPair ? "Pair" : "No pair"}</strong><small>{blackjackAnalysis.result.isNatural ? "Natural blackjack" : "Standard hand"}</small></div>
-                <div className={styles.metricCard}><span>Dealer bust</span><strong>{formatPercent(blackjackAnalysis.result.dealerDistribution.bust)}</strong><small>Natural: {formatPercent(blackjackAnalysis.result.dealerDistribution.natural)}</small></div>
-                <div className={styles.metricCard}><span>Hi-Lo</span><strong>{blackjackAnalysis.result.deckCount === 0 ? "Off" : trueCount.toFixed(1)}</strong><small>Running count {normalizedRunningCount}</small></div>
-                <div className={styles.metricCard}><span>Shoe state</span><strong>{Number.isFinite(blackjackAnalysis.result.remainingCards) ? `${blackjackAnalysis.result.remainingCards} cards` : "Infinite"}</strong><small>{blackjackAnalysis.result.deckCount === 0 ? "Infinite or unknown composition" : `${blackjackAnalysis.result.deckCount}-deck estimate, ${blackjackAnalysis.result.removedCardCount} count-derived removals`}</small></div>
-              </div>
               <div className={styles.tableWrap}>
                 <table className={styles.dataTable}>
                   <thead><tr><th>Action</th><th>EV</th></tr></thead>
@@ -246,7 +445,7 @@ export function BlackjackPage() {
                 {blackjackInputs.deckCount > 0 && blackjackInputs.runningCount !== 0 ? <li><span>Hi-Lo estimate: running count {normalizedRunningCount} converted into approximate low/high removals. For a sharper card-counting result, the missing information is the actual discard/exposed-card composition and decks remaining.</span></li> : null}
               </ul>
             </div>
-          ) : <ResultState pending={blackjackAnalysis.pending} error={blackjackAnalysis.error} emptyMessage="Enter two player values, a dealer upcard value, and an optional shoe estimate to solve the hand." />}
+          ) : null}
         </div>
       </PageSection>
 

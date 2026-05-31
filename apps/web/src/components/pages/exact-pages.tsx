@@ -29,7 +29,7 @@ import {
   GamePageShell,
   PageSection,
 } from "../casino-page-helpers";
-import { DiceRollField, FieldLabel, ToggleField } from "../input-primitives";
+import { DiceRollField, FieldLabel } from "../input-primitives";
 import { RouletteBoardStage } from "../roulette-board-stage";
 import styles from "../casino-dashboard.module.css";
 
@@ -62,23 +62,6 @@ const bankerDrawTable = buildBankerDrawTable();
 const baccaratMetrics = buildBaccaratBetMetricsTable();
 const crapsMetrics = buildCrapsBetMetrics();
 const pointOptions: CrapsPoint[] = [4, 5, 6, 8, 9, 10];
-const CRAPS_BET_HINTS: Record<string, string> = {
-  includePass: "Wins on 7 or 11 on the come-out, then wins by making the point before a 7.",
-  includeDontPass: "Wins on 2 or 3 on the come-out, pushes on 12, then wins if 7 appears before the point.",
-  includePassOdds: "True-odds backing bet behind a Pass Line wager after a point is set.",
-  includeDontPassOdds: "True-odds lay bet behind a Don't Pass wager after a point is set.",
-  includeField: "One-roll wager covering 2, 3, 4, 9, 10, 11, and 12.",
-  includeTravelCome: "Come bet before it has traveled to a point number.",
-  includeTravelDontCome: "Don't Come bet before it has traveled behind a point.",
-  includeSettledCome: "Come bet that has already moved to the selected point number.",
-  includeSettledDontCome: "Don't Come bet that has already moved behind the selected point number.",
-  includeComeOdds: "Odds attached to the settled Come bet on its point.",
-  includeDontComeOdds: "Odds attached to the settled Don't Come bet on its point.",
-  includePlace6: "Direct place bet on the 6, paid if 6 arrives before 7.",
-  includePlace8: "Direct place bet on the 8, paid if 8 arrives before 7.",
-  includeBuy4: "Buy bet on the 4 using true odds with commission built into the EV.",
-  includeHard8: "Hardway bet that wins only on 4-4 before a 7 or easy 8.",
-};
 const ROULETTE_LAYOUT_OPTIONS = [
   { kind: "european", label: "European", detail: "Single zero" },
   { kind: "american", label: "American", detail: "Double zero" },
@@ -539,33 +522,6 @@ export function CrapsPage() {
   const selectedRoll = CRAPS_ROLL_DISTRIBUTION.find((roll) => roll.sum === dieOne + dieTwo)!;
   const selectedRollIsHard = (dieOne + dieTwo === 4 || dieOne + dieTwo === 6 || dieOne + dieTwo === 8 || dieOne + dieTwo === 10) && dieOne === dieTwo;
   const crapsResolution = resolveCrapsRoll(crapsScenario, { sum: dieOne + dieTwo, hard: selectedRollIsHard });
-  const toggleGroups = [
-    {
-      title: "Line and come bets",
-      entries: [
-        ["includePass", "Pass line"],
-        ["includeDontPass", "Don't Pass"],
-        ["includePassOdds", "Pass odds"],
-        ["includeDontPassOdds", "Don't Pass odds"],
-        ["includeTravelCome", "Travel Come"],
-        ["includeTravelDontCome", "Travel Don't Come"],
-        ["includeField", "Field"],
-      ],
-    },
-    {
-      title: "Working bets",
-      entries: [
-        ["includeSettledCome", "Settled Come"],
-        ["includeSettledDontCome", "Settled Don't Come"],
-        ["includeComeOdds", "Come odds"],
-        ["includeDontComeOdds", "Don't Come odds"],
-        ["includePlace6", "Place 6"],
-        ["includePlace8", "Place 8"],
-        ["includeBuy4", "Buy 4"],
-        ["includeHard8", "Hard 8"],
-      ],
-    },
-  ] as const;
 
   function setCrapsOption<Key extends keyof CrapsScenarioOptions>(key: Key, value: CrapsScenarioOptions[Key]) {
     setCrapsOptions((current) => ({ ...current, [key]: value }));
@@ -587,6 +543,7 @@ export function CrapsPage() {
               </div>
 
               <div className={styles.crapsTableLayout}>
+                <span className={styles.crapsRailLabel}>Point</span>
                 <div className={styles.crapsPointBoxes}>
                   {pointOptions.map((point) => (
                     <button
@@ -601,7 +558,16 @@ export function CrapsPage() {
                   ))}
                 </div>
 
+                <span className={styles.crapsRailLabel}>Come and center</span>
                 <div className={styles.crapsCenterTable}>
+                  <button
+                    type="button"
+                    className={`${styles.boardButton} ${styles.crapsDontComeBox} ${crapsOptions.includeTravelDontCome ? styles.boardButtonActive : ""}`}
+                    onClick={() => setCrapsOptions((current) => ({ ...current, includeTravelDontCome: !current.includeTravelDontCome }))}
+                  >
+                    <strong>Don&apos;t Come</strong>
+                    <span>Traveling</span>
+                  </button>
                   <button
                     type="button"
                     className={`${styles.boardButton} ${styles.crapsComeBox} ${crapsOptions.includeTravelCome ? styles.boardButtonActive : ""}`}
@@ -628,6 +594,7 @@ export function CrapsPage() {
                   </button>
                 </div>
 
+                <span className={styles.crapsRailLabel}>Working numbers</span>
                 <div className={styles.crapsWorkingRail}>
                   {[
                     ["includeSettledCome", `Come ${crapsOptions.settledComePoint}`, "Working"],
@@ -635,7 +602,6 @@ export function CrapsPage() {
                     ["includePlace6", "Place 6", "7:6"],
                     ["includePlace8", "Place 8", "7:6"],
                     ["includeBuy4", "Buy 4", "True odds"],
-                    ["includeTravelDontCome", "Don't Come", "Traveling"],
                   ].map(([key, label, detail]) => (
                     <button
                       type="button"
@@ -649,6 +615,7 @@ export function CrapsPage() {
                   ))}
                 </div>
 
+                <span className={styles.crapsRailLabel}>Odds</span>
                 <div className={styles.crapsOddsRail}>
                   {[
                     ["includePassOdds", "Pass odds", "Behind line"],
@@ -668,6 +635,7 @@ export function CrapsPage() {
                   ))}
                 </div>
 
+                <span className={styles.crapsRailLabel}>Line</span>
                 <div className={styles.crapsLineRail}>
                   <button
                     type="button"
@@ -753,25 +721,6 @@ export function CrapsPage() {
                 </li>
               ))}
             </ul>
-          </div>
-
-          <div className={styles.contentStack}>
-            {toggleGroups.map((group) => (
-              <div className={styles.resultPanel} key={group.title}>
-                <p className={styles.cardStatusText}>{group.title}</p>
-                <div className={styles.toggleGrid}>
-                  {group.entries.map(([key, label]) => (
-                    <ToggleField
-                      key={key}
-                      label={label}
-                      hint={CRAPS_BET_HINTS[key]}
-                      checked={crapsOptions[key as keyof CrapsScenarioOptions] as boolean}
-                      onChange={(checked) => setCrapsOption(key as keyof CrapsScenarioOptions, checked as CrapsScenarioOptions[keyof CrapsScenarioOptions])}
-                    />
-                  ))}
-                </div>
-              </div>
-            ))}
           </div>
         </div>
       </PageSection>
@@ -898,17 +847,31 @@ export function KenoPage() {
           <div className={styles.boardFirstGrid}>
             <div className={`${styles.boardPrimary} ${styles.numberBoard}`}>
               <div className={styles.kenoBoard}>
-                {KENO_NUMBERS.map((number) => (
-                  <button
-                    type="button"
-                    className={`${styles.kenoNumber} ${selectedNumbers.includes(number) ? styles.kenoNumberActive : ""}`}
-                    key={number}
-                    aria-pressed={selectedNumbers.includes(number)}
-                    onClick={() => toggleKenoNumber(number)}
-                  >
-                    {number}
-                  </button>
-                ))}
+                {KENO_NUMBERS.map((number) => {
+                  const isSelected = selectedNumbers.includes(number);
+
+                  return isSelected ? (
+                    <button
+                      type="button"
+                      className={`${styles.kenoNumber} ${styles.kenoNumberActive}`}
+                      key={number}
+                      aria-pressed="true"
+                      onClick={() => toggleKenoNumber(number)}
+                    >
+                      {number}
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      className={styles.kenoNumber}
+                      key={number}
+                      aria-pressed="false"
+                      onClick={() => toggleKenoNumber(number)}
+                    >
+                      {number}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 

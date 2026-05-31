@@ -4,7 +4,6 @@ import Link from "next/link";
 import type { Dispatch, ReactNode, SetStateAction } from "react";
 import { useState } from "react";
 import { parseCardList, type CasinoGameEntry, type PokerEquityResult } from "casino-engine";
-import { HelpHint } from "./input-primitives";
 import styles from "./casino-dashboard.module.css";
 
 interface ComputationState<T> {
@@ -20,16 +19,6 @@ const FAMILY_LABELS: Record<CasinoGameEntry["family"], string> = {
   "exact-combinatorics": "Exact casino math",
   "equity-evaluator": "Poker equity lab",
   "research-mode": "Research mode",
-};
-const STAGE_LABELS: Record<CasinoGameEntry["stage"], string> = {
-  live: "Ready",
-  planned: "Planned",
-  research: "Research",
-};
-const STAGE_HINTS: Record<CasinoGameEntry["stage"], string> = {
-  live: "Interactive calculator is available.",
-  planned: "Calculator is planned but not ready.",
-  research: "Experimental calculator with research-mode assumptions.",
 };
 
 export function formatPercent(value: number) {
@@ -144,39 +133,13 @@ export function GamePageShell({
           <Link className={styles.backLink} href="/">
             Dashboard
           </Link>
-          <span className={`${styles.stageBadge} ${styles[game.stage]}`} title={STAGE_HINTS[game.stage]}>{STAGE_LABELS[game.stage]}</span>
+          <span className={styles.gameHeaderMeta}>{FAMILY_LABELS[game.family]}</span>
         </div>
 
-        <div className={styles.gameHeaderGrid}>
-          <div className={styles.gameHeaderCopy}>
-            <p className={styles.eyebrow}>{FAMILY_LABELS[game.family]}</p>
-            <h1 className={styles.gameTitle}>{game.title}</h1>
-            <p className={styles.gameBlurb}>{game.blurb}</p>
-          </div>
-
-          <div className={styles.gameFactGrid}>
-            <div className={styles.compactFact}>
-              <div className={styles.fieldLabelHeader}>
-                <span className={styles.statLabel}>Rules focus</span>
-                <HelpHint text="The rule assumptions and model boundary this page uses for its calculations." label="Rules focus explanation" />
-              </div>
-              <strong>{game.rulesFocus}</strong>
-            </div>
-            <div className={styles.compactFact}>
-              <div className={styles.fieldLabelHeader}>
-                <span className={styles.statLabel}>Outputs</span>
-                <HelpHint text="The main numbers or result groups this page will produce after you run the analysis." label="Outputs explanation" />
-              </div>
-              <div className={styles.outputCluster}>
-                {game.outputs.map((output) => (
-                  <span className={styles.outputChip} key={output}>
-                    {output}
-                  </span>
-                ))}
-              </div>
-            </div>
-            {helper ? <div className={styles.compactFact}>{helper}</div> : null}
-          </div>
+        <div className={styles.gameHeaderCopy}>
+          <h1 className={styles.gameTitle}>{game.title}</h1>
+          <p className={styles.gameBlurb}>{game.blurb}</p>
+          {helper ? <div className={styles.gameHeaderHelper}>{helper}</div> : null}
         </div>
       </header>
 

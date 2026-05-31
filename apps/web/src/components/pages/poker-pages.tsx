@@ -60,13 +60,17 @@ export function HoldemPage() {
     <GamePageShell game={game}>
       <PageSection eyebrow="Analyzer" title="Run the Hold'em lab" description="Enter hero cards, optional board cards, and either an exact villain hand or a shorthand range.">
         <div className={styles.contentStack}>
-          <div className={`${styles.controlGridWide} ${styles.feltBoard}`}>
-            <CardPickerField label="Hero hole cards" hint="Your two private cards in Hold'em." value={holdemInputs.hero} onChange={(hero) => setHoldemInputs((current) => ({ ...current, hero }))} maxCards={2} unavailableCards={holdemHeroUnavailable} />
-            <CardPickerField label="Board cards" hint="Community cards. Use either 0, 3, 4, or 5 cards for preflop through river states." value={holdemInputs.board} onChange={(board) => setHoldemInputs((current) => ({ ...current, board }))} maxCards={5} unavailableCards={holdemBoardUnavailable} />
-            <CardPickerField label="Exact villain hand" hint="Use this when you know the opponent's two private cards. Leave blank to simulate from a range or random holdings." value={holdemInputs.villain} onChange={(villain) => setHoldemInputs((current) => ({ ...current, villain }))} maxCards={2} unavailableCards={holdemVillainUnavailable} />
-            <FieldLabel label="Villain range" hint="Poker shorthand for the opponent's possible hands, such as QQ+, AKs, or AQo+. This is only used when exact villain cards are not fixed."><input value={holdemInputs.villainRange} onChange={(event) => setHoldemInputs((current) => ({ ...current, villainRange: event.target.value }))} placeholder="QQ+,AKs,AQo+" /></FieldLabel>
-            <FieldLabel label="Total opponents" hint="Total opposing hands to simulate. If exact villain cards are entered, they count as one opponent."><input aria-label="Total opponents" type="number" min={1} step={1} value={holdemInputs.opponents} onChange={(event) => setHoldemInputs((current) => ({ ...current, opponents: Number(event.target.value) }))} /></FieldLabel>
-            <FieldLabel label="Trials" hint="The number of random deals to sample when exhaustive enumeration is not being used. Higher values reduce noise but take longer."><input aria-label="Trials" type="number" min={500} step={250} value={holdemInputs.trials} onChange={(event) => setHoldemInputs((current) => ({ ...current, trials: Number(event.target.value) }))} /></FieldLabel>
+          <div className={`${styles.feltBoard} ${styles.pokerInputSurface}`}>
+            <div className={styles.pokerCardGrid}>
+              <CardPickerField label="Hero hole cards" hint="Your two private cards in Hold'em." value={holdemInputs.hero} onChange={(hero) => setHoldemInputs((current) => ({ ...current, hero }))} maxCards={2} unavailableCards={holdemHeroUnavailable} />
+              <CardPickerField label="Board cards" hint="Community cards. Use either 0, 3, 4, or 5 cards for preflop through river states." value={holdemInputs.board} onChange={(board) => setHoldemInputs((current) => ({ ...current, board }))} maxCards={5} unavailableCards={holdemBoardUnavailable} />
+              <CardPickerField label="Exact villain hand" hint="Use this when you know the opponent's two private cards. Leave blank to simulate from a range or random holdings." value={holdemInputs.villain} onChange={(villain) => setHoldemInputs((current) => ({ ...current, villain }))} maxCards={2} unavailableCards={holdemVillainUnavailable} />
+            </div>
+            <div className={styles.pokerMetaGrid}>
+              <FieldLabel label="Villain range" hint="Poker shorthand for the opponent's possible hands, such as QQ+, AKs, or AQo+. This is only used when exact villain cards are not fixed."><input value={holdemInputs.villainRange} onChange={(event) => setHoldemInputs((current) => ({ ...current, villainRange: event.target.value }))} placeholder="QQ+,AKs,AQo+" /></FieldLabel>
+              <FieldLabel label="Total opponents" hint="Total opposing hands to simulate. If exact villain cards are entered, they count as one opponent."><input aria-label="Total opponents" type="number" min={1} step={1} value={holdemInputs.opponents} onChange={(event) => setHoldemInputs((current) => ({ ...current, opponents: Number(event.target.value) }))} /></FieldLabel>
+              <FieldLabel label="Trials" hint="The number of random deals to sample when exhaustive enumeration is not being used. Higher values reduce noise but take longer."><input aria-label="Trials" type="number" min={500} step={250} value={holdemInputs.trials} onChange={(event) => setHoldemInputs((current) => ({ ...current, trials: Number(event.target.value) }))} /></FieldLabel>
+            </div>
           </div>
           <div className={styles.actionRow}><button type="button" className={styles.actionButton} onClick={runHoldemAnalysis} disabled={holdemAnalysis.pending}>{holdemAnalysis.pending ? "Simulating..." : "Run Hold'em lab"}</button></div>
           {holdemAnalysis.result ? <EquityResultView result={holdemAnalysis.result} /> : <ResultState pending={holdemAnalysis.pending} error={holdemAnalysis.error} emptyMessage="Enter hero cards plus any exact villain cards, a range, and optional multiway context to estimate equity." />}
@@ -112,12 +116,16 @@ export function OmahaPage() {
     <GamePageShell game={game}>
       <PageSection eyebrow="Analyzer" title="Run the Omaha lab" description="Enter four hero cards plus any known board or exact villain cards.">
         <div className={styles.contentStack}>
-          <div className={`${styles.controlGridWide} ${styles.feltBoard}`}>
-            <CardPickerField label="Hero hole cards" hint="Your four private Omaha cards." value={omahaInputs.hero} onChange={(hero) => setOmahaInputs((current) => ({ ...current, hero }))} maxCards={4} unavailableCards={omahaHeroUnavailable} />
-            <CardPickerField label="Board cards" hint="Community cards. Use either 0, 3, 4, or 5 cards depending on the street." value={omahaInputs.board} onChange={(board) => setOmahaInputs((current) => ({ ...current, board }))} maxCards={5} unavailableCards={omahaBoardUnavailable} />
-            <CardPickerField label="Exact villain hand" hint="Known opposing four-card Omaha holding. Leave blank for random opponents." value={omahaInputs.villain} onChange={(villain) => setOmahaInputs((current) => ({ ...current, villain }))} maxCards={4} unavailableCards={omahaVillainUnavailable} />
-            <FieldLabel label="Total opponents" hint="Total opposing Omaha hands to simulate. Exact villain cards count as one opponent."><input aria-label="Total opponents" type="number" min={1} step={1} value={omahaInputs.opponents} onChange={(event) => setOmahaInputs((current) => ({ ...current, opponents: Number(event.target.value) }))} /></FieldLabel>
-            <FieldLabel label="Trials" hint="The number of simulation runs to use when the board or villain cards are not fully fixed."><input aria-label="Trials" type="number" min={500} step={250} value={omahaInputs.trials} onChange={(event) => setOmahaInputs((current) => ({ ...current, trials: Number(event.target.value) }))} /></FieldLabel>
+          <div className={`${styles.feltBoard} ${styles.pokerInputSurface}`}>
+            <div className={styles.pokerCardGrid}>
+              <CardPickerField label="Hero hole cards" hint="Your four private Omaha cards." value={omahaInputs.hero} onChange={(hero) => setOmahaInputs((current) => ({ ...current, hero }))} maxCards={4} unavailableCards={omahaHeroUnavailable} />
+              <CardPickerField label="Board cards" hint="Community cards. Use either 0, 3, 4, or 5 cards depending on the street." value={omahaInputs.board} onChange={(board) => setOmahaInputs((current) => ({ ...current, board }))} maxCards={5} unavailableCards={omahaBoardUnavailable} />
+              <CardPickerField label="Exact villain hand" hint="Known opposing four-card Omaha holding. Leave blank for random opponents." value={omahaInputs.villain} onChange={(villain) => setOmahaInputs((current) => ({ ...current, villain }))} maxCards={4} unavailableCards={omahaVillainUnavailable} />
+            </div>
+            <div className={styles.pokerMetaGrid}>
+              <FieldLabel label="Total opponents" hint="Total opposing Omaha hands to simulate. Exact villain cards count as one opponent."><input aria-label="Total opponents" type="number" min={1} step={1} value={omahaInputs.opponents} onChange={(event) => setOmahaInputs((current) => ({ ...current, opponents: Number(event.target.value) }))} /></FieldLabel>
+              <FieldLabel label="Trials" hint="The number of simulation runs to use when the board or villain cards are not fully fixed."><input aria-label="Trials" type="number" min={500} step={250} value={omahaInputs.trials} onChange={(event) => setOmahaInputs((current) => ({ ...current, trials: Number(event.target.value) }))} /></FieldLabel>
+            </div>
           </div>
           <div className={styles.actionRow}><button type="button" className={styles.actionButton} onClick={runOmahaAnalysis} disabled={omahaAnalysis.pending}>{omahaAnalysis.pending ? "Simulating..." : "Run Omaha lab"}</button></div>
           {omahaAnalysis.result ? <EquityResultView result={omahaAnalysis.result} /> : <ResultState pending={omahaAnalysis.pending} error={omahaAnalysis.error} emptyMessage="Enter four hero cards plus any known board, exact villain cards, and optional multiway context to estimate equity." />}
@@ -163,12 +171,16 @@ export function StudPage() {
     <GamePageShell game={game}>
       <PageSection eyebrow="Analyzer" title="Run the stud lab" description="Enter 3 to 7 hero cards, optional villain cards, and any dead-card information.">
         <div className={styles.contentStack}>
-          <div className={`${styles.controlGridWide} ${styles.feltBoard}`}>
-            <CardPickerField label="Hero cards" hint="Your exposed and hidden stud cards. Use between 3 and 7 cards depending on the street." value={studInputs.hero} onChange={(hero) => setStudInputs((current) => ({ ...current, hero }))} maxCards={7} unavailableCards={studHeroUnavailable} />
-            <CardPickerField label="Villain cards" hint="Known opposing stud cards. Leave blank if the villain's hand is unknown." value={studInputs.villain} onChange={(villain) => setStudInputs((current) => ({ ...current, villain }))} maxCards={7} unavailableCards={studVillainUnavailable} />
-            <CardPickerField label="Dead cards" hint="Cards already folded or visibly out of play. These affect removal and live-out calculations." value={studInputs.dead} onChange={(dead) => setStudInputs((current) => ({ ...current, dead }))} maxCards={20} unavailableCards={studDeadUnavailable} />
-            <FieldLabel label="Total opponents" hint="Total stud opponents to simulate. Known villain cards count as one opponent, and dead cards are only removal."><input aria-label="Total opponents" type="number" min={1} step={1} value={studInputs.opponents} onChange={(event) => setStudInputs((current) => ({ ...current, opponents: Number(event.target.value) }))} /></FieldLabel>
-            <FieldLabel label="Trials" hint="The number of random stud runouts to sample for the current street state."><input aria-label="Trials" type="number" min={500} step={250} value={studInputs.trials} onChange={(event) => setStudInputs((current) => ({ ...current, trials: Number(event.target.value) }))} /></FieldLabel>
+          <div className={`${styles.feltBoard} ${styles.pokerInputSurface}`}>
+            <div className={styles.pokerCardGrid}>
+              <CardPickerField label="Hero cards" hint="Your exposed and hidden stud cards. Use between 3 and 7 cards depending on the street." value={studInputs.hero} onChange={(hero) => setStudInputs((current) => ({ ...current, hero }))} maxCards={7} unavailableCards={studHeroUnavailable} />
+              <CardPickerField label="Known opponent cards" hint="Known opposing stud cards. Leave blank if the villain's hand is unknown." value={studInputs.villain} onChange={(villain) => setStudInputs((current) => ({ ...current, villain }))} maxCards={7} unavailableCards={studVillainUnavailable} />
+              <CardPickerField label="Dead cards" hint="Cards already folded or visibly out of play. These affect removal and live-out calculations." value={studInputs.dead} onChange={(dead) => setStudInputs((current) => ({ ...current, dead }))} maxCards={20} unavailableCards={studDeadUnavailable} />
+            </div>
+            <div className={styles.pokerMetaGrid}>
+              <FieldLabel label="Total opponents" hint="Total stud opponents to simulate, including the known opponent when cards are entered."><input aria-label="Total opponents" type="number" min={1} step={1} value={studInputs.opponents} onChange={(event) => setStudInputs((current) => ({ ...current, opponents: Number(event.target.value) }))} /></FieldLabel>
+              <FieldLabel label="Trials" hint="The number of random stud runouts to sample for the current street state."><input aria-label="Trials" type="number" min={500} step={250} value={studInputs.trials} onChange={(event) => setStudInputs((current) => ({ ...current, trials: Number(event.target.value) }))} /></FieldLabel>
+            </div>
           </div>
           <div className={styles.actionRow}><button type="button" className={styles.actionButton} onClick={runStudAnalysis} disabled={studAnalysis.pending}>{studAnalysis.pending ? "Simulating..." : "Run stud lab"}</button></div>
           {studAnalysis.result ? <EquityResultView result={studAnalysis.result} /> : <ResultState pending={studAnalysis.pending} error={studAnalysis.error} emptyMessage="Enter 3 to 7 hero cards, optional villain cards, dead cards, and any multiway context to estimate stud equity." />}
